@@ -10,7 +10,7 @@ INC_DIR = /opt/Cadence/INCISIV/cur/tools/include
 
 # Toolchain
 CC = gcc
-OCD = $(PROJECT_DIR)/riscv-openocd/build/bin/openocd
+OCD = /opt/riscv/bin/openocd
 
 C_SRC = $(JTAG_DPI_DIR)/jtag_dpi.c
 SV_SRC = "\
@@ -18,6 +18,8 @@ SV_SRC = "\
 				  $(ZERO_BUGGY_DIR)/debug_transfer_module.sv \
 				  $(ZERO_BUGGY_DIR)/debug_module.sv \
           $(JTAG_DPI_DIR)/jtag_dpi.sv \
+				  $(TEST_DIR)/src/core_wrapper.sv \
+				  $(TEST_DIR)/src/top.sv \
 				  $(TEST_DIR)/src/test.sv \
 "
 
@@ -51,7 +53,11 @@ build: jtag_dpi.so
 ncsim: build
 	@echo '##### Start the simulation ######'
 	mkdir -p $(CACHE_DIR)
-	$(Q)cd $(CACHE_DIR); ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so +incdir+$(ZERO_BUGGY_DIR) +access+r -mccodegen +jtag_vpi_enable +fsdb+struct=on $(SV_SRC) &
+	$(Q)cd $(CACHE_DIR); \
+		ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so \
+		+incdir+$(ZERO_BUGGY_DIR) \
+		+incdir+$(TEST_DIR)/src \
+		+access+r -mccodegen +jtag_vpi_enable +fsdb+struct=on $(SV_SRC) &
 
 run: ncsim
 	@echo '##### Waiting for the server ######'
