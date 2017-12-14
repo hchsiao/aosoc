@@ -3,6 +3,7 @@ PROJECT_DIR := $(shell pwd)/..
 TEST_DIR = $(PROJECT_DIR)/run
 CACHE_DIR = $(TEST_DIR)/cache
 ZERO_BUGGY_DIR = $(PROJECT_DIR)/zero-buggy
+ZERO_RISCY_DIR = $(PROJECT_DIR)/zero-riscy
 JTAG_DPI_DIR = $(PROJECT_DIR)/openocd_jtag_dpi
 
 # Environment paths
@@ -18,9 +19,30 @@ SV_SRC = "\
 				  $(ZERO_BUGGY_DIR)/debug_transfer_module.sv \
 				  $(ZERO_BUGGY_DIR)/debug_module.sv \
           $(JTAG_DPI_DIR)/jtag_dpi.sv \
-				  $(TEST_DIR)/src/core_wrapper.sv \
-				  $(TEST_DIR)/src/top.sv \
-				  $(TEST_DIR)/src/test.sv \
+				  $(ZERO_RISCY_DIR)/include/zeroriscy_defines.sv \
+				  $(ZERO_RISCY_DIR)/include/zeroriscy_tracer_defines.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_alu.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_compressed_decoder.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_controller.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_cs_registers.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_debug_unit.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_decoder.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_int_controller.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_ex_block.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_id_stage.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_if_stage.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_load_store_unit.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_multdiv_slow.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_multdiv_fast.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_prefetch_buffer.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_fetch_fifo.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_core.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_tracer.sv \
+				  $(ZERO_RISCY_DIR)/zeroriscy_register_file.sv \
+				  $(PROJECT_DIR)/src/cluster_clock_gating.sv \
+				  $(PROJECT_DIR)/src/core_wrapper.sv \
+				  $(PROJECT_DIR)/src/top.sv \
+				  $(PROJECT_DIR)/src/test.sv \
 "
 
 # Parameters (TODO: this does not affect jtag_dpi setting)
@@ -56,14 +78,15 @@ ncsim: build
 	$(Q)cd $(CACHE_DIR); \
 		ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so \
 		+incdir+$(ZERO_BUGGY_DIR) \
-		+incdir+$(TEST_DIR)/src \
+		+incdir+$(ZERO_RISCY_DIR)/include \
+		+incdir+$(PROJECT_DIR)/src \
 		+access+r -mccodegen +jtag_vpi_enable +fsdb+struct=on $(SV_SRC) &
 
 run: ncsim
 	@echo '##### Waiting for the server ######'
 	$(Q)while ! fuser $(JTAG_DPI_PORT)/tcp; do sleep 1; done;
 	@echo '##### Running the test client ######'
-	-$(Q)cd $(CACHE_DIR); $(OCD) $(OPENOCD_FLAG) -f $(TEST_DIR)/src/jtag_dpi.cfg
+	-$(Q)cd $(CACHE_DIR); $(OCD) $(OPENOCD_FLAG) -f $(PROJECT_DIR)/src/jtag_dpi.cfg
 	# to prevent hanging simulations
 	killall ncsim
 

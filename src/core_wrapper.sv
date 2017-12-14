@@ -1,10 +1,11 @@
 `include "core_wrapper.svh"
 
-module core_wrapper #(
-  parameter	ABITS      = `ABITS
-)(
+module core_wrapper (
   MemPort.Master instr_mem,
   MemPort.Master data_mem,
+
+  input logic debug_halt,
+  input logic debug_exec,
 
   input logic clk,
   input logic rst,
