@@ -56,8 +56,12 @@ debug_transfer_module DTM (
 // DM
 logic debug_halt;
 logic debug_exec;
+MemPort instr_dbg_mem();
+MemPort data_dbg_mem();
 debug_module DM (
   .dm(dm_port),
+  .instr_dbg_mem(instr_dbg_mem),
+  .data_dbg_mem(data_dbg_mem),
 
   .halted(debug_halt),
   .postexec(debug_exec),
@@ -77,6 +81,17 @@ core_wrapper CORE(
 
   .debug_halt(debug_halt),
   .debug_exec(debug_exec),
+
+  .clk(clk),
+  .rst(rst),
+  .test_mode(1'b0)
+);
+
+mem MEM(
+  .instr_mem(instr_mem),
+  .data_mem(data_mem),
+  .instr_dbg_mem(instr_dbg_mem),
+  .data_dbg_mem(data_dbg_mem),
 
   .clk(clk),
   .rst(rst),

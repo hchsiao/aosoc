@@ -17,12 +17,13 @@ initial begin
 end
 
 always
-	#1 clk <= ~clk;
+	#10 clk <= ~clk;
 
 initial begin
-	#10 rst <= 1;
-	#20 rst <= 0;
+	#7 rst <= 1;
+	#23 rst <= 0;
   initialized <= 1;
+  #10000 $finish();
 end
 
 jtag_dpi #(

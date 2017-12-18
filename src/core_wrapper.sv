@@ -16,20 +16,27 @@ wire clock_gating_i = 1;
 wire [31:0] boot_addr_i = 'h10000000;
 
 // signals from/to core
-wire         core_instr_req = instr_mem.valid;
+wire core_instr_req;
+wire [31:0] core_instr_addr;
+assign  instr_mem.valid = core_instr_req;
 wire         core_instr_gnt = instr_mem.ready;
 reg         core_instr_rvalid;
-wire [31:0]  core_instr_addr = instr_mem.addr;
+assign  instr_mem.addr = core_instr_addr;
 wire [31:0]  core_instr_rdata = instr_mem.rdata;
 
-wire         core_lsu_req = data_mem.valid;
+wire core_lsu_req;
+wire [31:0] core_lsu_addr;
+wire core_lsu_we;
+wire [3:0] core_lsu_be;
+wire [31:0] core_lsu_wdata;
+assign  data_mem.valid = core_lsu_req;
 wire         core_lsu_gnt = data_mem.ready;
 reg         core_lsu_rvalid;
-wire [31:0]  core_lsu_addr = data_mem.addr;
-wire         core_lsu_we = data_mem.write_en;
-wire [3:0]   core_lsu_be = data_mem.byte_en;
+assign  data_mem.addr = core_lsu_addr;
+assign  data_mem.write_en = core_lsu_we;
+assign  data_mem.byte_en = core_lsu_be;
 wire [31:0]  core_lsu_rdata = data_mem.rdata;
-wire [31:0]  core_lsu_wdata = data_mem.wdata;
+assign  data_mem.wdata = core_lsu_wdata;
 
 wire [31:0] irq_i = 0;
 wire [4:0] irq_id = 0;

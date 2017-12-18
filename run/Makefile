@@ -41,6 +41,7 @@ SV_SRC = "\
 				  $(ZERO_RISCY_DIR)/zeroriscy_register_file.sv \
 				  $(PROJECT_DIR)/src/cluster_clock_gating.sv \
 				  $(PROJECT_DIR)/src/core_wrapper.sv \
+				  $(PROJECT_DIR)/src/mem.sv \
 				  $(PROJECT_DIR)/src/top.sv \
 				  $(PROJECT_DIR)/src/test.sv \
 "
@@ -58,6 +59,13 @@ else
 Q ?=@
 QUIET=-quiet
 OPENOCD_FLAG=
+endif
+
+JTAG_ENABLE ?= 1
+ifeq ($(JTAG_ENABLE), 1)
+JTAG_FLAG = "+jtag_vpi_enable"
+else
+JTAG_FLAG = ""
 endif
 
 all: build
@@ -80,7 +88,7 @@ ncsim: build
 		+incdir+$(ZERO_BUGGY_DIR) \
 		+incdir+$(ZERO_RISCY_DIR)/include \
 		+incdir+$(PROJECT_DIR)/src \
-		+access+r -mccodegen +jtag_vpi_enable +fsdb+struct=on $(SV_SRC) &
+		+access+r -mccodegen $(JTAG_FLAG) +fsdb+struct=on $(SV_SRC) &
 
 run: ncsim
 	@echo '##### Waiting for the server ######'
