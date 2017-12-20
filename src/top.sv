@@ -53,24 +53,6 @@ debug_transfer_module DTM (
   .test_mode(1'b0)
 );
 
-// DM
-logic debug_halt;
-logic debug_exec;
-MemPort instr_dbg_mem();
-MemPort data_dbg_mem();
-debug_module DM (
-  .dm(dm_port),
-  .instr_dbg_mem(instr_dbg_mem),
-  .data_dbg_mem(data_dbg_mem),
-
-  .halted(debug_halt),
-  .postexec(debug_exec),
-
-  .clk(clk),
-  .rst(rst),
-  .test_mode(1'b0)
-);
-
 // core
 MemPort instr_mem();
 MemPort data_mem();
@@ -79,8 +61,7 @@ core_wrapper CORE(
   .instr_mem(instr_mem),
   .data_mem(data_mem),
 
-  .debug_halt(debug_halt),
-  .debug_exec(debug_exec),
+  .dm(dm_port),
 
   .clk(clk),
   .rst(rst),
@@ -90,8 +71,6 @@ core_wrapper CORE(
 mem MEM(
   .instr_mem(instr_mem),
   .data_mem(data_mem),
-  .instr_dbg_mem(instr_dbg_mem),
-  .data_dbg_mem(data_dbg_mem),
 
   .clk(clk),
   .rst(rst),

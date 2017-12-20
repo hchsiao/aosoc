@@ -1,11 +1,11 @@
 `include "core_wrapper.svh"
+`include "dmi_port.svh"
 
 module core_wrapper (
   MemPort.Master instr_mem,
   MemPort.Master data_mem,
 
-  input logic debug_halt,
-  input logic debug_exec,
+  DMIPort.Slave dm,
 
   input logic clk,
   input logic rst,
@@ -92,13 +92,13 @@ zeroriscy_core
         .irq_ack_o       (                   ),
         .irq_id_o        (                   ),
 
-        .debug_req_i     ( 0         ),
-        .debug_gnt_o     ( ),
-        .debug_rvalid_o  ( ),
-        .debug_addr_i    ( 0        ),
-        .debug_we_i      ( 0          ),
-        .debug_wdata_i   ( 0       ),
-        .debug_rdata_o   ( ),
+        .debug_req_i     ( dm.valid          ),
+        .debug_gnt_o     (                   ),
+        .debug_rvalid_o  ( dm.ready          ),
+        .debug_addr_i    ( dm.addr           ),
+        .debug_we_i      ( dm.write_en       ),
+        .debug_wdata_i   ( dm.wdata          ),
+        .debug_rdata_o   ( dm.rdata          ),
         .debug_halted_o  (                   ),
         .debug_halt_i    ( 1'b0              ),
         .debug_resume_i  ( 1'b0              ),
@@ -107,4 +107,34 @@ zeroriscy_core
         .core_busy_o     ( ),
         .ext_perf_counters_i (               )
 );
+
+//wire instr_main_sel = instr_mem.addr >= 'h10000000;
+//wire data_main_sel = data_mem.addr >= 'h10000000;
+//wire instr_main_valid = instr_main_sel & instr_mem.valid;
+//wire data_main_valid = data_main_sel & data_mem.valid;
+//wire instr_dbg_sel = instr_mem.addr >= 'h20000000;
+//wire data_dbg_sel = data_mem.addr >= 'h20000000;
+//wire instr_dbg_valid = instr_dbg_sel & instr_mem.valid;
+//wire data_dbg_valid = data_dbg_sel & data_mem.valid;
+//
+//assign instr_dbg_mem.valid = instr_dbg_valid;
+//assign instr_mem.ready = instr_main_sel ? instr_mem.valid :
+//                         instr_dbg_sel  ? instr_dbg_mem.ready :
+//                         0;
+//assign instr_dbg_mem.addr = instr_mem.addr - 'h20000000;
+//assign instr_mem.rdata = instr_main_sel ? instr_rdata :
+//                         instr_dbg_sel  ? instr_dbg_mem.rdata :
+//                         0;
+//
+//assign data_dbg_mem.valid = data_dbg_valid;
+//assign data_mem.ready = data_main_sel ? data_mem.valid :
+//                        data_dbg_sel  ? data_dbg_mem.ready :
+//                        0;
+//assign data_dbg_mem.addr = data_mem.addr - 'h20000000;
+//assign data_mem.rdata = data_main_sel ? data_rdata :
+//                        data_dbg_sel  ? data_dbg_mem.rdata :
+//                        0;
+//assign data_dbg_mem.write_en = data_mem.write_en;
+//assign data_dbg_mem.byte_en = data_mem.byte_en;
+//assign data_dbg_mem.wdata = data_mem.wdata;
 endmodule

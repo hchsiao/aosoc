@@ -17,13 +17,14 @@ initial begin
 end
 
 always
-	#10 clk <= ~clk;
+	#5 clk <= ~clk;
 
 initial begin
 	#7 rst <= 1;
 	#23 rst <= 0;
   initialized <= 1;
-  #10000 $finish();
+  if(!$test$plusargs("jtag_vpi_enable"))
+    #10000 $finish();
 end
 
 jtag_dpi #(

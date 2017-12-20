@@ -17,7 +17,6 @@ C_SRC = $(JTAG_DPI_DIR)/jtag_dpi.c
 SV_SRC = "\
 				  $(ZERO_BUGGY_DIR)/jtag_tap.sv \
 				  $(ZERO_BUGGY_DIR)/debug_transfer_module.sv \
-				  $(ZERO_BUGGY_DIR)/debug_module.sv \
           $(JTAG_DPI_DIR)/jtag_dpi.sv \
 				  $(ZERO_RISCY_DIR)/include/zeroriscy_defines.sv \
 				  $(ZERO_RISCY_DIR)/include/zeroriscy_tracer_defines.sv \
@@ -39,6 +38,7 @@ SV_SRC = "\
 				  $(ZERO_RISCY_DIR)/zeroriscy_core.sv \
 				  $(ZERO_RISCY_DIR)/zeroriscy_tracer.sv \
 				  $(ZERO_RISCY_DIR)/zeroriscy_register_file.sv \
+				  $(ZERO_RISCY_DIR)/mem_mux.sv \
 				  $(PROJECT_DIR)/src/cluster_clock_gating.sv \
 				  $(PROJECT_DIR)/src/core_wrapper.sv \
 				  $(PROJECT_DIR)/src/mem.sv \
