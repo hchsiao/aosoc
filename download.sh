@@ -22,7 +22,8 @@ make install
 cd $ROOT/riscv-openocd
 mkdir -p build
 ./bootstrap
-./configure --prefix=`pwd`/build
+./configure --prefix=`pwd`/build --enable-remote-bitbang --enable-jtag_vpi
+make
 make install
 
 cd $ROOT
