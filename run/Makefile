@@ -5,49 +5,54 @@ CACHE_DIR = $(TEST_DIR)/cache
 ZERO_BUGGY_DIR = $(PROJECT_DIR)/zero-buggy
 ZERO_RISCY_DIR = $(PROJECT_DIR)/zero-riscy
 JTAG_DPI_DIR = $(PROJECT_DIR)/openocd_jtag_dpi
+SW_DIR = $(PROJECT_DIR)/sw
+
+# Toolchain
+CC = /opt/riscv/bin/riscv32-unknown-elf-gcc
+DBG = /opt/riscv/bin/riscv32-unknown-elf-gdb
+OCD = $(PROJECT_DIR)/riscv-openocd/build/bin/openocd
+SPIKE = $(PROJECT_DIR)/riscv-isa-sim/build/bin/spike
+MAKE = make
 
 # Environment paths
 INC_DIR = /opt/Cadence/INCISIV/cur/tools/include
 
-# Toolchain
-CC = gcc
-OCD = /opt/riscv/bin/openocd
-
 C_SRC = $(JTAG_DPI_DIR)/jtag_dpi.c
 SV_SRC = "\
-				  $(ZERO_BUGGY_DIR)/jtag_tap.sv \
-				  $(ZERO_BUGGY_DIR)/debug_transfer_module.sv \
+          $(ZERO_BUGGY_DIR)/jtag_tap.sv \
+          $(ZERO_BUGGY_DIR)/debug_transfer_module.sv \
           $(JTAG_DPI_DIR)/jtag_dpi.sv \
-				  $(ZERO_RISCY_DIR)/include/zeroriscy_defines.sv \
-				  $(ZERO_RISCY_DIR)/include/zeroriscy_tracer_defines.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_alu.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_compressed_decoder.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_controller.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_cs_registers.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_debug_unit.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_decoder.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_int_controller.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_ex_block.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_id_stage.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_if_stage.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_load_store_unit.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_multdiv_slow.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_multdiv_fast.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_prefetch_buffer.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_fetch_fifo.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_core.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_tracer.sv \
-				  $(ZERO_RISCY_DIR)/zeroriscy_register_file.sv \
-				  $(ZERO_RISCY_DIR)/mem_mux.sv \
-				  $(PROJECT_DIR)/src/cluster_clock_gating.sv \
-				  $(PROJECT_DIR)/src/core_wrapper.sv \
-				  $(PROJECT_DIR)/src/mem.sv \
-				  $(PROJECT_DIR)/src/top.sv \
-				  $(PROJECT_DIR)/src/test.sv \
+          $(ZERO_RISCY_DIR)/include/zeroriscy_defines.sv \
+          $(ZERO_RISCY_DIR)/include/zeroriscy_tracer_defines.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_alu.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_compressed_decoder.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_controller.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_cs_registers.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_debug_unit.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_decoder.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_int_controller.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_ex_block.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_id_stage.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_if_stage.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_load_store_unit.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_multdiv_slow.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_multdiv_fast.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_prefetch_buffer.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_fetch_fifo.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_core.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_tracer.sv \
+          $(ZERO_RISCY_DIR)/zeroriscy_register_file.sv \
+          $(ZERO_RISCY_DIR)/mem_mux.sv \
+          $(PROJECT_DIR)/src/cluster_clock_gating.sv \
+          $(PROJECT_DIR)/src/core_wrapper.sv \
+          $(PROJECT_DIR)/src/mem.sv \
+          $(PROJECT_DIR)/src/top.sv \
+          $(PROJECT_DIR)/src/test.sv \
 "
 
 # Parameters (TODO: this does not affect jtag_dpi setting)
 JTAG_DPI_PORT = 22222
+DBG_PORT = 22223
 
 # Set V=1 when calling make to enable verbose output
 # mainly for debugging purposes.
@@ -58,7 +63,7 @@ OPENOCD_FLAG="-d3"
 else
 Q ?=@
 QUIET=-quiet
-OPENOCD_FLAG=
+OPENOCD_FLAG="-d2"
 endif
 
 JTAG_ENABLE ?= 1
@@ -73,14 +78,18 @@ all: build
 jtag_dpi.so:
 	@echo '##### Building DPI object ######'
 	mkdir -p $(CACHE_DIR)
-	$(Q)cd $(CACHE_DIR); $(CC) -fPIC -shared -o jtag_dpi.so $(C_SRC) -I$(INC_DIR)
+	$(Q)cd $(CACHE_DIR); gcc -fPIC -shared -o jtag_dpi.so $(C_SRC) -I$(INC_DIR)
 
 build: jtag_dpi.so
-	#$(Q)iverilog-vpi $(IVERILOG_VPI_SRC) > /dev/null
-	#$(Q)iverilog -I$(INCLUDE_DIR) -ojtag_vpi_tb.vvp $(IVERILOG_SRC)
+	mkdir -p $(CACHE_DIR)
+	cp $(SW_DIR)/hello.s $(CACHE_DIR)
+	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
+	cp $(SW_DIR)/link.ld $(CACHE_DIR)
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
 
 # TODO: should not run alone
-ncsim: build
+inner-ncsim: build
 	@echo '##### Start the simulation ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); \
@@ -90,13 +99,55 @@ ncsim: build
 		+incdir+$(PROJECT_DIR)/src \
 		+access+r -mccodegen $(JTAG_FLAG) +fsdb+struct=on $(SV_SRC) &
 
-run: ncsim
+sim:
+	bash -c "trap 'trap - SIGINT SIGTERM ERR; \
+		$(MAKE) on-err; \
+		exit 1' SIGINT SIGTERM ERR; $(MAKE) inner-sim"
+
+inner-sim: inner-ncsim
 	@echo '##### Waiting for the server ######'
 	$(Q)while ! fuser $(JTAG_DPI_PORT)/tcp; do sleep 1; done;
 	@echo '##### Running the test client ######'
 	-$(Q)cd $(CACHE_DIR); $(OCD) $(OPENOCD_FLAG) -f $(PROJECT_DIR)/src/jtag_dpi.cfg
 	# to prevent hanging simulations
 	killall ncsim
+
+# dont run alone. TODO: handle it properly
+inner-spike:
+	@echo '##### Start the simulation ######'
+	mkdir -p $(CACHE_DIR)
+	$(Q)cd $(CACHE_DIR); \
+		$(SPIKE) --isa=rv32imc --progsize=16 --rbb-port=$(DBG_PORT) -m0x10000000:0x20000 dummy.elf &
+
+run:
+	bash -c "trap 'trap - SIGINT SIGTERM ERR; \
+		$(MAKE) on-err; \
+		exit 1' SIGINT SIGTERM ERR; $(MAKE) inner-run"
+
+inner-run: inner-spike
+	@echo '##### Waiting for the server ######'
+	$(Q)while ! fuser $(DBG_PORT)/tcp; do sleep 1; done;
+	$(Q)cd $(CACHE_DIR); \
+    $(DBG) -ex "target remote | \
+    $(OCD) $(OPENOCD_FLAG) --pipe -f $(SW_DIR)/spike.cfg \
+    " -ex "load"  hello.elf
+	killall -9 spike
+
+#ocd:
+#	bash -c "trap 'trap - SIGINT SIGTERM ERR; \
+#		$(MAKE) on-err; \
+#		exit 1' SIGINT SIGTERM ERR; $(MAKE) inner-ocd"
+#
+#inner-ocd: spike
+#	@echo '##### Waiting for the server ######'
+#	$(Q)while ! fuser $(DBG_PORT)/tcp; do sleep 1; done;
+#	$(OCD) $(OPENOCD_FLAG) -f spike.cfg
+#	killall -9 spike
+
+on-err:
+	@echo '##### Clean up ######'
+	-killall -9 spike
+	-killall -9 ncsim
 
 clean:
 	@rm -rf $(CACHE_DIR)

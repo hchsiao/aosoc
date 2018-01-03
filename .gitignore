@@ -1,4 +1,6 @@
 openocd_jtag_dpi/
 riscv-openocd/
+riscv-fesvr/
+riscv-isa-sim/
 zero-riscy/
 zero-buggy/
