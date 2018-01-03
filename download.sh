@@ -21,6 +21,7 @@ make install
 
 cd $ROOT/riscv-openocd
 mkdir -p build
+./bootstrap
 ./configure --prefix=`pwd`/build
 make install
 
