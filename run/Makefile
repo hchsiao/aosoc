@@ -113,7 +113,7 @@ inner-sim: inner-ncsim
 	killall ncsim
 
 # dont run alone. TODO: handle it properly
-inner-spike:
+inner-spike: build
 	@echo '##### Start the simulation ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); \
