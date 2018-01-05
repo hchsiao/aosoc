@@ -153,4 +153,4 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:3333" cache/hello.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:3333" -ex "load" cache/hello.elf
