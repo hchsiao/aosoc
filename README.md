@@ -15,16 +15,20 @@ cd run
 make inner-ncsim V=1 JTAG_ENABLE=0
 ```
 
-Simulation with debugger + gdb: 
+Spike with debugger + gdb: 
 ```
 cd run
 make run V=1
 ```
 
-Simulation with debugger + gdb: 
+Simulation(ncsim) with debugger: 
 ```
 cd run
 make sim V=1
+```
+To run gdb in another terminal:
+```
+make gdb
 ```
 
 ## Tutorial
