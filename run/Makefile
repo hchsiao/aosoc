@@ -50,9 +50,9 @@ SV_SRC = "\
           $(PROJECT_DIR)/src/test.sv \
 "
 
-# Parameters (TODO: this does not affect jtag_dpi setting)
-JTAG_DPI_PORT = 22222
-DBG_PORT = 22223
+# Parameters
+VJTAG_PORT = 22223
+GDB_PORT = 3334
 
 # Set V=1 when calling make to enable verbose output
 # mainly for debugging purposes.
@@ -97,6 +97,7 @@ inner-ncsim: build
 		+incdir+$(ZERO_BUGGY_DIR) \
 		+incdir+$(ZERO_RISCY_DIR)/include \
 		+incdir+$(PROJECT_DIR)/src \
+		+define+JTAG_DPI_PORT=$(VJTAG_PORT) \
 		+access+r -mccodegen $(JTAG_FLAG) +fsdb+struct=on $(SV_SRC) &
 
 sim:
@@ -106,9 +107,9 @@ sim:
 
 inner-sim: inner-ncsim
 	@echo '##### Waiting for the server ######'
-	$(Q)while ! fuser $(JTAG_DPI_PORT)/tcp; do sleep 1; done;
+	$(Q)while ! fuser $(VJTAG_PORT)/tcp; do sleep 1; done;
 	@echo '##### Running the test client ######'
-	-$(Q)cd $(CACHE_DIR); $(OCD) $(OPENOCD_FLAG) -f $(PROJECT_DIR)/src/jtag_dpi.cfg
+	-$(Q)cd $(CACHE_DIR); VJTAG_PORT=$(VJTAG_PORT) GDB_PORT=$(GDB_PORT) $(OCD) $(OPENOCD_FLAG) -f $(PROJECT_DIR)/src/jtag_dpi.cfg
 	# to prevent hanging simulations
 	killall ncsim
 
@@ -117,7 +118,7 @@ inner-spike: build
 	@echo '##### Start the simulation ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); \
-		$(SPIKE) --isa=rv32imc --progsize=16 --rbb-port=$(DBG_PORT) -m0x10000000:0x20000 dummy.elf &
+		$(SPIKE) --isa=rv32imc --progsize=16 --rbb-port=$(VJTAG_PORT) -m0x10000000:0x20000 dummy.elf &
 
 run:
 	bash -c "trap 'trap - SIGINT SIGTERM ERR; \
@@ -126,9 +127,9 @@ run:
 
 inner-run: inner-spike
 	@echo '##### Waiting for the server ######'
-	$(Q)while ! fuser $(DBG_PORT)/tcp; do sleep 1; done;
+	$(Q)while ! fuser $(VJTAG_PORT)/tcp; do sleep 1; done;
 	$(Q)cd $(CACHE_DIR); \
-    $(DBG) -ex "target remote | \
+    VJTAG_PORT=$(VJTAG_PORT) $(DBG) -ex "target remote | \
     $(OCD) $(OPENOCD_FLAG) --pipe -f $(SW_DIR)/spike.cfg \
     " -ex "load"  hello.elf
 	killall -9 spike
@@ -140,7 +141,7 @@ inner-run: inner-spike
 #
 #inner-ocd: spike
 #	@echo '##### Waiting for the server ######'
-#	$(Q)while ! fuser $(DBG_PORT)/tcp; do sleep 1; done;
+#	$(Q)while ! fuser $(VJTAG_PORT)/tcp; do sleep 1; done;
 #	$(OCD) $(OPENOCD_FLAG) -f spike.cfg
 #	killall -9 spike
 
@@ -153,4 +154,4 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:3333" -ex "load" cache/hello.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/hello.elf
