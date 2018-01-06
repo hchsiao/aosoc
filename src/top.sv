@@ -56,6 +56,8 @@ debug_transfer_module DTM (
 // core
 MemPort instr_mem();
 MemPort data_mem();
+MemPort lsu_to_mem();
+MemPort lsu_to_uart();
 
 core_wrapper CORE(
   .instr_mem(instr_mem),
@@ -70,11 +72,23 @@ core_wrapper CORE(
 
 mem MEM(
   .instr_mem(instr_mem),
-  .data_mem(data_mem),
+  .data_mem(lsu_to_mem),
 
   .clk(clk),
   .rst(rst),
   .test_mode(1'b0)
+);
+
+mmux MMUX(
+  .from_lsu(data_mem), // INPUT
+  .to_mem(lsu_to_mem), // OUTPUT
+  .to_uart(lsu_to_uart) // OUTPUT
+);
+
+uart_wrapper UART_WRP(
+  .from_core(lsu_to_uart),
+  .clk(clk),
+  .rst(rst)
 );
 
 endmodule

@@ -20,7 +20,7 @@ wire core_instr_req;
 wire [31:0] core_instr_addr;
 assign  instr_mem.valid = core_instr_req;
 wire         core_instr_gnt = instr_mem.ready;
-reg         core_instr_rvalid;
+wire         core_instr_rvalid = instr_mem.rvalid;
 assign  instr_mem.addr = core_instr_addr;
 wire [31:0]  core_instr_rdata = instr_mem.rdata;
 
@@ -31,7 +31,7 @@ wire [3:0] core_lsu_be;
 wire [31:0] core_lsu_wdata;
 assign  data_mem.valid = core_lsu_req;
 wire         core_lsu_gnt = data_mem.ready;
-reg         core_lsu_rvalid;
+wire         core_lsu_rvalid = data_mem.rvalid;
 assign  data_mem.addr = core_lsu_addr;
 assign  data_mem.write_en = core_lsu_we;
 assign  data_mem.byte_en = core_lsu_be;
@@ -41,17 +41,6 @@ assign  data_mem.wdata = core_lsu_wdata;
 wire [31:0] irq_i = 0;
 wire [4:0] irq_id = 0;
 wire fetch_enable_i = 1;
-
-always_ff @ (posedge clk) begin
-  if(rst) begin
-    core_instr_rvalid <= 0;
-    core_lsu_rvalid <= 0;
-  end
-  else begin
-    core_instr_rvalid <= core_instr_gnt;
-    core_lsu_rvalid <= core_lsu_gnt;
-  end
-end
 
 zeroriscy_core
       #(

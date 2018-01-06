@@ -7,6 +7,7 @@ interface MemPort;
   logic          write_en;
   logic [31:0]   addr;
   logic [31:0]   rdata;
+  logic          rvalid;
   logic [31:0]   wdata;
   logic [3:0]    byte_en;
 
@@ -16,6 +17,7 @@ interface MemPort;
     output write_en,
     output addr,
     input  rdata,
+    input  rvalid,
     output wdata,
     output byte_en
   );
@@ -26,6 +28,7 @@ interface MemPort;
     input  write_en,
     input  addr,
     output rdata,
+    output rvalid,
     input  wdata,
     input  byte_en
   );
