@@ -46,12 +46,14 @@ SV_SRC = "\
           $(PROJECT_DIR)/src/cluster_clock_gating.sv \
           $(PROJECT_DIR)/src/core_wrapper.sv \
           $(PROJECT_DIR)/src/mem.sv \
+          $(PROJECT_DIR)/src/mmux.sv \
+          $(PROJECT_DIR)/src/uart_wrapper.sv \
           $(PROJECT_DIR)/src/top.sv \
           $(PROJECT_DIR)/src/test.sv \
 "
 
 # Parameters
-VJTAG_PORT = 22223
+VJTAG_PORT = 22224
 GDB_PORT = 3334
 
 # Set V=1 when calling make to enable verbose output

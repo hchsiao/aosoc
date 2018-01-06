@@ -13,19 +13,27 @@ logic [31:0] mem[65536];
 logic [31:0] instr_rdata;
 logic [31:0] data_rdata;
 
+logic instr_rvalid, data_rvalid;
+
 assign instr_mem.ready = instr_mem.valid;
 assign instr_mem.rdata = instr_rdata;
+assign instr_mem.rvalid = instr_rvalid;
 
 assign data_mem.ready = data_mem.valid;
 assign data_mem.rdata = data_rdata;
+assign data_mem.rvalid = data_rvalid;
 
 int i;
 always @ (posedge clk) begin
   if(rst) begin
+    instr_rvalid <= 0;
+    data_rvalid <= 0;
     for(i = 0; i < 65536; i=i+1)
       mem[i] <= 'h0;
   end
   else begin
+    instr_rvalid <= instr_mem.valid; // alwaya respons in 1 cyc
+    data_rvalid <= data_mem.valid; // alwaya respons in 1 cyc
     if(data_mem.valid) begin
       if(data_mem.write_en && (|data_mem.byte_en)) begin
         mem[data_mem.addr/4] <= {
