@@ -22,7 +22,7 @@ uart UART (
 );
 
 always_ff @(posedge clk) begin
-  if (reset)
+  if (rst)
     rvalid <= 0;
   else
     rvalid <= from_core.valid;

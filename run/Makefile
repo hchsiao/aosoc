@@ -50,6 +50,8 @@ SV_SRC = "\
           $(PROJECT_DIR)/src/uart_wrapper.sv \
           $(PROJECT_DIR)/src/top.sv \
           $(PROJECT_DIR)/src/test.sv \
+          $(PROJECT_DIR)/src/uart/uart.sv \
+          $(wildcard $(PROJECT_DIR)/src/uart/*/*.sv) \
 "
 
 # Parameters
@@ -81,6 +83,7 @@ jtag_dpi.so:
 	@echo '##### Building DPI object ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); gcc -fPIC -shared -o jtag_dpi.so $(C_SRC) -I$(INC_DIR)
+	$(Q)cd $(CACHE_DIR); gcc -fPIC -shared -o uartdpi.so $(PROJECT_DIR)/src/uart/uartdpi/uartdpi.c -I$(INC_DIR) -lutil
 
 build: jtag_dpi.so
 	mkdir -p $(CACHE_DIR)
@@ -95,7 +98,7 @@ inner-ncsim: build
 	@echo '##### Start the simulation ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); \
-		ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so \
+		ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so +sv_lib=uartdpi.so \
 		+incdir+$(ZERO_BUGGY_DIR) \
 		+incdir+$(ZERO_RISCY_DIR)/include \
 		+incdir+$(PROJECT_DIR)/src \
