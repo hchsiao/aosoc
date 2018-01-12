@@ -37,7 +37,7 @@ module axi_wrap
     output logic                        core_lsu_gnt_o,
     output logic                        core_lsu_rvalid_o,
     input                               core_lsu_we_i,
-    input                               core_lsu_be_i,
+    input        [3:0]                  core_lsu_be_i,
     input        [31:0]                 core_lsu_addr_i,
     input        [31:0]                 core_lsu_wdata_i,
     output logic [31:0]                 core_lsu_rdata_o,
@@ -236,7 +236,7 @@ module axi_wrap
         .test_en_i      ( testmode_i                     ),
         .master         ( slaves                         ),
         .slave          ( masters                        ),
-        .start_addr_i   ( {32'h2000_0000, 32'h0000_0000} ),
-        .end_addr_i     ( {32'h2000_ffff, 32'h0000_ffff} )
+        .start_addr_i   ( {32'h2000_0000, 32'h1000_0000} ),
+        .end_addr_i     ( {32'h2000_ffff, 32'h1000_ffff} )
     );
 endmodule
