@@ -89,9 +89,12 @@ build: jtag_dpi.so
 	mkdir -p $(CACHE_DIR)
 	cp $(SW_DIR)/hello.s $(CACHE_DIR)
 	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
+	cp $(SW_DIR)/uart.c $(CACHE_DIR)
+	cp $(SW_DIR)/uart_boot.s $(CACHE_DIR)
 	cp $(SW_DIR)/link.ld $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart.elf uart.c uart_boot.s
 
 # TODO: should not run alone
 inner-ncsim: build
@@ -159,4 +162,4 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/hello.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/uart.elf
