@@ -160,7 +160,7 @@ sp_ram_wrap
 )
 instr_mem (
     .clk         ( clk             ),
-    .rstn_i      ( ~rst            ),
+
     .en_i        ( instr_mem_req   ),
     .addr_i      ( instr_mem_addr  ),
     .wdata_i     ( 'd0             ),
@@ -177,7 +177,6 @@ instr_ram_wrap
 )
 instr_mem (
   .clk         ( clk             ),
-  .rstn_i      ( ~rst            ),
   .en_i        ( instr_mem_req   ),
   .addr_i      ( instr_mem_addr  ),
   .wdata_i     ( 'd0             ),
