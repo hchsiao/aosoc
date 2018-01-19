@@ -84,7 +84,10 @@ SV_SRC = "\
 					$(AXI_DIR)/ram/axi_mem_if_SP_wrap.sv \
 					$(AXI_DIR)/ram/axi_mem_if_SP.sv \
 					$(AXI_DIR)/ram/axi_read_only_ctrl.sv \
-					$(AXI_DIR)/ram/axi_write_only_ctrl.sv \
+					$(AXI_DIR)/ram/instr_ram_wrap.sv \
+					$(AXI_DIR)/ram/boot_rom_wrap.sv \
+					$(AXI_DIR)/ram/boot_code.sv \
+					$(AXI_DIR)/ram/ram_mux.sv \
 					$(AXI_DIR)/includes/axi_bus.sv \
 					$(AXI_DIR)/includes/config.sv \
 "                             
