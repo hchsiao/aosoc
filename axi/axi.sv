@@ -20,7 +20,9 @@ module axi
     parameter DATA_RAM_SIZE       = 32768,
     parameter INSTR_RAM_SIZE      = 32768,
     parameter DATA_ADDR_WIDTH     = $clog2(DATA_RAM_SIZE),
-    parameter INSTR_ADDR_WIDTH    = $clog2(INSTR_RAM_SIZE)
+    parameter INSTR_ADDR_WIDTH    = $clog2(INSTR_RAM_SIZE),
+    parameter UART_ADDR_WIDTH     = 12,
+    parameter UART_DATA_WIDTH     = 32
 )
 (
     input                               clk,
@@ -54,7 +56,14 @@ module axi
     output logic                        data_mem_we_o,
     output logic [AXI_DATA_WIDTH/8-1:0] data_mem_be_o,
     input        [AXI_DATA_WIDTH-1:0]   data_mem_rdata_i,
-    output logic [AXI_DATA_WIDTH-1:0]   data_mem_wdata_o
+    output logic [AXI_DATA_WIDTH-1:0]   data_mem_wdata_o,
+
+    output  logic [UART_ADDR_WIDTH-1:0]  uart_addr_o,
+    output  logic [UART_DATA_WIDTH-1:0]  uart_wdata_o,
+    output  logic                        uart_write_o,
+    output  logic                        uart_enable_o,
+    input   logic [UART_DATA_WIDTH-1:0]  uart_rdata_i
+
 );
     AXI_BUS
     #(
@@ -90,7 +99,7 @@ module axi
         .AXI_ID_WIDTH   ( AXI_ID_SLAVE_WIDTH ),
         .AXI_USER_WIDTH ( AXI_USER_WIDTH     )
     )
-    slaves[1:0] ();
+    slaves[2:0] ();
 
     // access instruction memory
 
@@ -218,12 +227,40 @@ module axi
         .mem_wdata_o    ( data_mem_wdata_o ),
         .slave          ( slaves[1]        )
     );
+     
+    //uart
+
+   axi_mem_if_SP_wrap
+    #(
+        .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH     ),
+        .AXI_DATA_WIDTH ( AXI_DATA_WIDTH     ),
+        .AXI_ID_WIDTH   ( AXI_ID_SLAVE_WIDTH ),
+        .AXI_USER_WIDTH ( AXI_USER_WIDTH     ),
+        .MEM_ADDR_WIDTH ( UART_ADDR_WIDTH    )
+    )
+    uart_axi_if (
+        .clk            ( clk              ),
+        .rst_n          ( ~rst             ),
+        .test_en_i      ( testmode_i       ),
+        .mem_req_o      ( uart_enable_o    ),
+        .mem_addr_o     ( uart_addr_o      ),
+        .mem_we_o       ( uart_write_o     ),
+        .mem_be_o       (                  ),
+        .mem_rdata_i    ( uart_rdata_i     ),
+        .mem_wdata_o    ( uart_wdata_o     ),
+        .slave          ( slaves[2]        )
+    );
+
+   
+
+
+
 
     // axi bus
 
     axi_node_intf_wrap
     #(
-        .NB_MASTER      ( 2                              ),
+        .NB_MASTER      ( 3                              ),
         .NB_SLAVE       ( 2                              ),
         .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH                 ),
         .AXI_DATA_WIDTH ( AXI_DATA_WIDTH                 ),
@@ -236,7 +273,7 @@ module axi
         .test_en_i      ( testmode_i                     ),
         .master         ( slaves                         ),
         .slave          ( masters                        ),
-        .start_addr_i   ( {32'h2000_0000, 32'h0000_0000} ),
-        .end_addr_i     ( {32'h2000_ffff, 32'h0000_ffff} )
+        .start_addr_i   ( {32'h4000_0000,32'h2000_0000, 32'h1000_0000} ),
+        .end_addr_i     ( {32'h4000_0fff,32'h2000_ffff, 32'h1000_ffff} )
     );
 endmodule

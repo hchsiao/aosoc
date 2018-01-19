@@ -77,6 +77,7 @@ module sp_ram_wrap
   )
   sp_ram_i
   (
+    .rst_i   (~rstn_i    ),
     .clk     ( clk       ),
     .en_i    ( en_i      ),
     .addr_i  ( addr_i    ),

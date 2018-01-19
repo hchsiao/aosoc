@@ -35,7 +35,7 @@ module instr_ram_wrap
   logic [DATA_WIDTH-1:0] rdata_ram;
 
 
-  assign is_boot = (addr_i[ADDR_WIDTH-1] == 1'b0);
+  assign is_boot = (addr_i[9] == 1'b0);//instr_addr_start = 0x1000_0800
 
 
   sp_ram_wrap

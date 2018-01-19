@@ -2,6 +2,7 @@
 PROJECT_DIR := $(shell pwd)/..
 TEST_DIR = $(PROJECT_DIR)/run
 CACHE_DIR = $(TEST_DIR)/cache
+UART_DIR  = $(PROJECT_DIR)/uart
 ZERO_BUGGY_DIR = $(PROJECT_DIR)/zero-buggy
 ZERO_RISCY_DIR = $(PROJECT_DIR)/zero-riscy
 JTAG_DPI_DIR = $(PROJECT_DIR)/openocd_jtag_dpi
@@ -18,6 +19,7 @@ MAKE = make
 # Environment paths
 INC_DIR = /opt/Cadence/INCISIV/cur/tools/include
 
+UART_DPI_SRC = $(UART_DIR)/uartdpi.c
 C_SRC = $(JTAG_DPI_DIR)/jtag_dpi.c
 SV_SRC = "\
           $(ZERO_BUGGY_DIR)/jtag_tap.sv \
@@ -84,12 +86,20 @@ SV_SRC = "\
 					$(AXI_DIR)/ram/axi_mem_if_SP_wrap.sv \
 					$(AXI_DIR)/ram/axi_mem_if_SP.sv \
 					$(AXI_DIR)/ram/axi_read_only_ctrl.sv \
+					$(AXI_DIR)/ram/axi_write_only_ctrl.sv \
 					$(AXI_DIR)/ram/instr_ram_wrap.sv \
 					$(AXI_DIR)/ram/boot_rom_wrap.sv \
 					$(AXI_DIR)/ram/boot_code.sv \
 					$(AXI_DIR)/ram/ram_mux.sv \
 					$(AXI_DIR)/includes/axi_bus.sv \
 					$(AXI_DIR)/includes/config.sv \
+					$(UART_DIR)/apb_uart_sv.sv \
+					$(UART_DIR)/io_generic_fifo.sv \
+					$(UART_DIR)/uart_interrupt.sv \
+					$(UART_DIR)/uart_rx.sv \
+					$(UART_DIR)/uart_tx.sv \
+					$(UART_DIR)/uartdpi.sv \
+					$(UART_DIR)/uart.sv \
 "                             
 
 # Parameters
@@ -117,7 +127,13 @@ endif
 
 all: build
 
-jtag_dpi.so:
+uartdpi_so:
+	@echo '###### Building UART_DPI object ######'
+	mkdir -p $(CACHE_DIR)
+	cd $(CACHE_DIR); \
+		gcc -fPIC -shared -lutil -o uartdpi.so $(UART_DPI_SRC)
+
+jtag_dpi.so: uartdpi_so
 	@echo '##### Building DPI object ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); gcc -fPIC -shared -o jtag_dpi.so $(C_SRC) -I$(INC_DIR)
@@ -125,8 +141,10 @@ jtag_dpi.so:
 build: jtag_dpi.so
 	mkdir -p $(CACHE_DIR)
 	cp $(SW_DIR)/hello.s $(CACHE_DIR)
+	cp $(SW_DIR)/uart.s  $(CACHE_DIR)
 	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
 	cp $(SW_DIR)/link.ld $(CACHE_DIR)
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart.elf  uart.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
 
@@ -135,12 +153,13 @@ inner-ncsim: build
 	@echo '##### Start the simulation ######'
 	mkdir -p $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); \
-		ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so \
+		ncverilog +nc64bit +sv +sv_lib=jtag_dpi.so +sv_lib=uartdpi.so \
 		+incdir+$(ZERO_BUGGY_DIR) \
 		+incdir+$(ZERO_RISCY_DIR)/include \
 		+incdir+$(PROJECT_DIR)/src \
 		+incdir+$(AXI_DIR)/includes \
 		+incdir+$(AXI_DIR)/axi_node \
+		+incdir+$(UART_DIR) \
 		+define+JTAG_DPI_PORT=$(VJTAG_PORT) \
 		+access+r -mccodegen $(JTAG_FLAG) +fsdb+struct=on $(SV_SRC) &
 
@@ -198,4 +217,4 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/hello.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/uart.elf

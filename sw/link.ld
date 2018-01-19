@@ -3,7 +3,7 @@ ENTRY( _start )
 SECTIONS
 {
 /* text: test code section */
-. = 0x10000000;
+. = 0x10000800;
 .text :
 {
 *(.text)

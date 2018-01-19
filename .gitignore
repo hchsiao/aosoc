@@ -4,3 +4,8 @@ riscv-fesvr/
 riscv-isa-sim/
 zero-riscy/
 zero-buggy/
+*Log
+*.log
+nova*
+BSSLib*
+*.rc

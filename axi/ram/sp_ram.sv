@@ -15,6 +15,7 @@ module sp_ram
     parameter NUM_WORDS  = 256
   )(
     // Clock and Reset
+    input  logic                    rst_i,
     input  logic                    clk,
     input  logic                    en_i,
     input  logic [ADDR_WIDTH-1:0]   addr_i,
@@ -28,12 +29,12 @@ module sp_ram
 
   logic [DATA_WIDTH/8-1:0][7:0] mem[words];
   logic [DATA_WIDTH/8-1:0][7:0] wdata;
-  logic [ADDR_WIDTH-1-$clog2(DATA_WIDTH/8):0] addr;
+  logic [ADDR_WIDTH-1:0] addr;
 
-  integer i, j;
+  integer i, j,k;
 
 
-  assign addr = addr_i[ADDR_WIDTH-1:$clog2(DATA_WIDTH/8)];
+  assign addr = addr_i;
 
 
   always @(posedge clk)

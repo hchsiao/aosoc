@@ -20,6 +20,9 @@ parameter DATA_RAM_SIZE       = 32768;
 parameter INSTR_RAM_SIZE      = 32768;
 parameter DATA_ADDR_WIDTH     = $clog2(DATA_RAM_SIZE);
 parameter INSTR_ADDR_WIDTH    = $clog2(INSTR_RAM_SIZE);
+parameter UART_ADDR_WIDTH     = 12;
+parameter UART_DATA_WIDTH     = 32;
+
 
 logic [31: 0] boot_addr_i;
 logic         clock_gating_i;
@@ -52,6 +55,13 @@ logic                        instr_mem_we;
 logic [AXI_DATA_WIDTH/8-1:0] instr_mem_be;
 logic [AXI_DATA_WIDTH-1:0]   instr_mem_rdata;
 logic [AXI_DATA_WIDTH-1:0]   instr_mem_wdata;
+
+logic [UART_ADDR_WIDTH-1:0]  uart_addr;
+logic [UART_DATA_WIDTH-1:0]  uart_rdata;
+logic [UART_DATA_WIDTH-1:0]  uart_wdata;
+logic                        uart_enable;
+logic                        uart_write;
+
 
 // interface between TAP & DTM
 DTMCS   dtmcs_scan_in;
@@ -153,23 +163,24 @@ RISCV_CORE
   .ext_perf_counters_i (                   )
 );
 
-sp_ram_wrap
+/*sp_ram_wrap
 #(
     .RAM_SIZE    ( INSTR_RAM_SIZE  ),
     .DATA_WIDTH  ( AXI_DATA_WIDTH  )
 )
 instr_mem (
     .clk         ( clk             ),
-
+    .rstn_i      ( ~rst            ),
     .en_i        ( instr_mem_req   ),
     .addr_i      ( instr_mem_addr  ),
-    .wdata_i     ( 'd0             ),
+    .wdata_i     ( instr_mem_wdata ),
     .rdata_o     ( instr_mem_rdata ),
-    .we_i        ( 1'b0            ),
-    .be_i        ( 4'b1111         ),
+    .we_i        ( instr_mem_we    ),
+    .be_i        ( instr_mem_be    ),
     .bypass_en_i ( 1'b0            )
 );
-/*
+*/
+
 instr_ram_wrap
 #(
   .RAM_SIZE    ( INSTR_RAM_SIZE  ),
@@ -179,13 +190,13 @@ instr_mem (
   .clk         ( clk             ),
   .en_i        ( instr_mem_req   ),
   .addr_i      ( instr_mem_addr  ),
-  .wdata_i     ( 'd0             ),
+  .wdata_i     ( instr_mem_wdata ),
   .rdata_o     ( instr_mem_rdata ),
-  .we_i        ( 1'b0            ),
-  .be_i        ( 4'b1111         ),
+  .we_i        ( instr_mem_we    ),
+  .be_i        ( instr_mem_be    ),
   .bypass_en_i ( 1'b0            )
 );
-*/
+
 sp_ram_wrap
 #(
     .RAM_SIZE    ( DATA_RAM_SIZE  ),
@@ -201,6 +212,18 @@ data_mem (
     .we_i        ( data_mem_we    ),
     .be_i        ( data_mem_be    ),
     .bypass_en_i ( 1'b0           )
+);
+
+uart uart(
+     .clk      (clk            ),
+     .rst      (rst            ),
+     .addr_i   (uart_addr      ),
+     .wdata_i  (uart_wdata     ),
+     .write_i  (uart_write     ),
+     .sel_i    (1'b1  ),
+     .enable_i (uart_enable    ),
+     .rdata_o  (uart_rdata     ),
+     .ready_o  (               )
 );
 
 
@@ -236,7 +259,13 @@ axi AXI (
   .data_mem_we_o       ( data_mem_we       ),
   .data_mem_be_o       ( data_mem_be       ),
   .data_mem_rdata_i    ( data_mem_rdata    ),
-  .data_mem_wdata_o    ( data_mem_wdata    )
+  .data_mem_wdata_o    ( data_mem_wdata    ),
+
+  .uart_addr_o         (uart_addr          ),
+  .uart_wdata_o        (uart_wdata         ),
+  .uart_write_o        (uart_write         ),
+  .uart_enable_o       (uart_enable        ),
+  .uart_rdata_i        (uart_rdata         )
 );
 
 endmodule
