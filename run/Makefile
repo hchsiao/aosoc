@@ -5,6 +5,7 @@ CACHE_DIR = $(TEST_DIR)/cache
 ZERO_BUGGY_DIR = $(PROJECT_DIR)/zero-buggy
 ZERO_RISCY_DIR = $(PROJECT_DIR)/zero-riscy
 JTAG_DPI_DIR = $(PROJECT_DIR)/openocd_jtag_dpi
+AXI_DIR = $(PROJECT_DIR)/axi
 SW_DIR = $(PROJECT_DIR)/sw
 
 # Toolchain
@@ -42,17 +43,55 @@ SV_SRC = "\
           $(ZERO_RISCY_DIR)/zeroriscy_core.sv \
           $(ZERO_RISCY_DIR)/zeroriscy_tracer.sv \
           $(ZERO_RISCY_DIR)/zeroriscy_register_file.sv \
-          $(ZERO_RISCY_DIR)/mem_mux.sv \
+				 	$(ZERO_RISCY_DIR)/mem_mux.sv \
           $(PROJECT_DIR)/src/cluster_clock_gating.sv \
-          $(PROJECT_DIR)/src/core_wrapper.sv \
-          $(PROJECT_DIR)/src/mem.sv \
           $(PROJECT_DIR)/src/top.sv \
           $(PROJECT_DIR)/src/test.sv \
-"
+					$(AXI_DIR)/axi.sv \
+					$(AXI_DIR)/axi_node/axi_address_decoder_AR.sv \
+					$(AXI_DIR)/axi_node/axi_address_decoder_AR.sv \
+					$(AXI_DIR)/axi_node/axi_address_decoder_AW.sv \
+					$(AXI_DIR)/axi_node/axi_address_decoder_BR.sv \
+					$(AXI_DIR)/axi_node/axi_address_decoder_BW.sv \
+					$(AXI_DIR)/axi_node/axi_address_decoder_DW.sv \
+					$(AXI_DIR)/axi_node/axi_AR_allocator.sv \
+					$(AXI_DIR)/axi_node/axi_AW_allocator.sv \
+					$(AXI_DIR)/axi_node/axi_BR_allocator.sv \
+					$(AXI_DIR)/axi_node/axi_BW_allocator.sv \
+					$(AXI_DIR)/axi_node/axi_DW_allocator.sv \
+					$(AXI_DIR)/axi_node/axi_ArbitrationTree.sv \
+					$(AXI_DIR)/axi_node/axi_FanInPrimitive_Req.sv \
+					$(AXI_DIR)/axi_node/axi_multiplexer.sv \
+					$(AXI_DIR)/axi_node/axi_node.sv \
+					$(AXI_DIR)/axi_node/axi_node_intf_wrap.sv \
+					$(AXI_DIR)/axi_node/axi_request_block.sv \
+					$(AXI_DIR)/axi_node/axi_response_block.sv \
+					$(AXI_DIR)/axi_node/axi_RR_Flag_Req.sv \
+					$(AXI_DIR)/axi_node/defines.v \
+					$(AXI_DIR)/axi_node/generic_fifo.sv \
+					$(AXI_DIR)/core2axi/core2axi.sv \
+					$(AXI_DIR)/core2axi/core2axi_wrap.sv \
+					$(AXI_DIR)/core2axi/axi_slice_wrap.sv \
+					$(AXI_DIR)/core2axi/axi_ar_buffer.sv \
+					$(AXI_DIR)/core2axi/axi_aw_buffer.sv \
+					$(AXI_DIR)/core2axi/axi_b_buffer.sv \
+					$(AXI_DIR)/core2axi/axi_buffer.sv \
+					$(AXI_DIR)/core2axi/axi_r_buffer.sv \
+					$(AXI_DIR)/core2axi/axi_w_buffer.sv \
+					$(AXI_DIR)/core2axi/axi_slice.sv \
+					$(AXI_DIR)/ram/sp_ram.sv \
+					$(AXI_DIR)/ram/sp_ram_wrap.sv \
+					$(AXI_DIR)/ram/axi_mem_if_SP_wrap.sv \
+					$(AXI_DIR)/ram/axi_mem_if_SP.sv \
+					$(AXI_DIR)/ram/axi_read_only_ctrl.sv \
+					$(AXI_DIR)/ram/axi_write_only_ctrl.sv \
+					$(AXI_DIR)/includes/axi_bus.sv \
+					$(AXI_DIR)/includes/config.sv \
+"                             
 
 # Parameters
-VJTAG_PORT = 22223
-GDB_PORT = 3334
+VJTAG_PORT = 22221
+GDB_PORT = 3331
 
 # Set V=1 when calling make to enable verbose output
 # mainly for debugging purposes.
@@ -97,6 +136,8 @@ inner-ncsim: build
 		+incdir+$(ZERO_BUGGY_DIR) \
 		+incdir+$(ZERO_RISCY_DIR)/include \
 		+incdir+$(PROJECT_DIR)/src \
+		+incdir+$(AXI_DIR)/includes \
+		+incdir+$(AXI_DIR)/axi_node \
 		+define+JTAG_DPI_PORT=$(VJTAG_PORT) \
 		+access+r -mccodegen $(JTAG_FLAG) +fsdb+struct=on $(SV_SRC) &
 
