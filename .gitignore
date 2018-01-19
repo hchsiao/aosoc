@@ -1,0 +1,5 @@
+*Log
+*.log
+nova*
+BSSLib*
+*.rc
