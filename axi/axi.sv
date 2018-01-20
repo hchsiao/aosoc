@@ -260,7 +260,7 @@ module axi
 
     axi_node_intf_wrap
     #(
-        .NB_MASTER      ( 3                              ),
+        .NB_MASTER      ( 4                              ),
         .NB_SLAVE       ( 2                              ),
         .AXI_ADDR_WIDTH ( AXI_ADDR_WIDTH                 ),
         .AXI_DATA_WIDTH ( AXI_DATA_WIDTH                 ),
@@ -273,7 +273,7 @@ module axi
         .test_en_i      ( testmode_i                     ),
         .master         ( slaves                         ),
         .slave          ( masters                        ),
-        .start_addr_i   ( {32'h4000_0000,32'h2000_0000, 32'h1000_0000} ),
-        .end_addr_i     ( {32'h4000_0fff,32'h2000_ffff, 32'h1000_ffff} )
+        .start_addr_i   ( {32'h2200_0000, 32'h2100_0000,32'h1001_0000, 32'h1000_0000} ),
+        .end_addr_i     ( {32'h2200_1000, 32'h2100_3FFF,32'h1001_FFFF, 32'h1000_FFFF} )
     );
 endmodule
