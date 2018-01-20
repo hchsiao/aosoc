@@ -14,14 +14,13 @@
 module boot_rom_wrap
   #(
     parameter ADDR_WIDTH = `ROM_ADDR_WIDTH,
-    parameter DATA_WIDTH = 32
   )(
     // Clock and Reset
     input  logic                  clk,
     input  logic                  rst_n,
     input  logic                  en_i,
     input  logic [ADDR_WIDTH-1:0] addr_i,
-    output logic [DATA_WIDTH-1:0] rdata_o
+    output logic [31:0]           rdata_o
   );
 
   boot_code
@@ -30,7 +29,7 @@ module boot_rom_wrap
     .CLK   ( clk                    ),
     .RSTN  ( rst_n                  ),
     .CSN   ( ~en_i                  ),
-    .A     ( addr_i[ADDR_WIDTH-1:2] ),
+    .A     ( addr_i                 ),
     .Q     ( rdata_o                )
   );
 endmodule
