@@ -11,47 +11,39 @@
 module sp_ram
   #(
     parameter ADDR_WIDTH = 8,
-    parameter DATA_WIDTH = 32,
     parameter NUM_WORDS  = 256
   )(
     // Clock and Reset
-    input  logic                    rst_i,
     input  logic                    clk,
+
     input  logic                    en_i,
     input  logic [ADDR_WIDTH-1:0]   addr_i,
-    input  logic [DATA_WIDTH-1:0]   wdata_i,
-    output logic [DATA_WIDTH-1:0]   rdata_o,
+    input  logic [31:0]             wdata_i,
+    output logic [31:0]             rdata_o,
     input  logic                    we_i,
-    input  logic [DATA_WIDTH/8-1:0] be_i
+    input  logic [3:0]              be_i
   );
 
-  localparam words = NUM_WORDS/(DATA_WIDTH/8);
+  logic [3:0][7:0] mem[NUM_WORDS];
+  logic [3:0][7:0] wdata;
 
-  logic [DATA_WIDTH/8-1:0][7:0] mem[words];
-  logic [DATA_WIDTH/8-1:0][7:0] wdata;
-  logic [ADDR_WIDTH-1:0] addr;
-
-  integer i, j,k;
-
-
-  assign addr = addr_i;
-
+  integer i;
 
   always @(posedge clk)
   begin
     if (en_i && we_i)
     begin
-      for (i = 0; i < DATA_WIDTH/8; i++) begin
+      for (i = 0; i < 4; i++) begin
         if (be_i[i])
-          mem[addr][i] <= wdata[i];
+          mem[addr_i][i] <= wdata[i];
       end
     end
     // always read data
-    rdata_o <= mem[addr];
+    rdata_o <= mem[addr_i];
   end
   // seperate to 1 byte writing
   genvar w;
-  generate for(w = 0; w < DATA_WIDTH/8; w++)
+  generate for(w = 0; w < 4; w++)
     begin
       assign wdata[w] = wdata_i[(w+1)*8-1:w*8];
     end
