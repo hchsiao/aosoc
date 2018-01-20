@@ -2,12 +2,14 @@
 
 module test;
 
-logic		clk = 0;
-logic		rst = 0;
+logic	clk;
+logic	rst;
+logic tx;
+logic rx;
 
-Jtag    tap();
+Jtag  tap();
 
-logic   initialized = 0;
+logic initialized = 0;
 
 initial begin
   //$dumpfile("jtag_dpi.vcd");
@@ -20,6 +22,7 @@ always
 	#5 clk <= ~clk;
 
 initial begin
+  clk = 'b0; rst = 1'b1;
 	#7 rst <= 1;
 	#23 rst <= 0;
   initialized <= 1;
@@ -27,23 +30,47 @@ initial begin
     #10000 $finish();
 end
 
-jtag_dpi #(
-  .DEBUG_INFO(0)
-)JTAG_HOST(
-	.tms(tap.TMS),
-  .tck(tap.TCK),
-	.tdi(tap.TDI),
-	.tdo(tap.TDO),
+jtag_dpi 
+#(
+  .DEBUG_INFO ( 0 )
+)
+JTAG_HOST
+(
+	.tms       ( tap.TMS     ),
+  .tck       ( tap.TCK     ),
+	.tdi       ( tap.TDI     ),
+	.tdo       ( tap.TDO     ),
 
-	.init_done(initialized)
+	.init_done ( initialized )
+);
+
+uartdpi
+#(
+  .BAUD ( 100000   ),
+  .FREQ ( 10000000 )
+)
+UART_HOST
+(
+  .clk ( clk ),
+  .rst ( rst ),
+  .tx  ( rx  ),
+  .rx  ( tx  )
 );
 
 top TOP (
-  .tap(tap),
+  .tap            ( tap  ),
 
-  .clk(clk),
-  .rst(rst),
-  .test_mode(1'b0)
+  .clk            ( clk  ),
+  .rst_n          ( ~rst ),
+  .fetch_enable_i ( 1'b1 ),
+  .clk_gating_i   ( 1'b1 ),
+  .core_busy_o    (      ),
+  .uart_tx        ( tx   ),
+  .uart_rx        ( rx   ),
+  .uart_rts       (      ),
+  .uart_dtr       (      ),
+  .uart_cts       (      ),
+  .uart_dsr       (      )
 );
 
 endmodule

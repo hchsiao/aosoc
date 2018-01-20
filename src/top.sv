@@ -1,289 +1,280 @@
-`include "jtag_tap.svh"
-`include "riscv_debug.svh"
+/* 
+    * File Name : 
+    *
+    * Purpose :
+    *           
+    * Creation Date : 
+    *
+    * Last Modified : 
+    *
+    * Create By : Jyun-Neng Ji
+    *
+*/
+`include "axi_bus.sv"
 `include "dmi_port.svh"
+`include "jtag_tap.svh"
 
+`define AXI_ADDR_WIDTH 32
+`define AXI_DATA_WIDTH 32
+`define AXI_USER_WIDTH 1
+`define AXI_ID_MASTER_WIDTH 2
+`define AXI_ID_SLAVE_WIDTH 3
+`define INSTR_RAM_SIZE 65536
+`define DATA_RAM_SIZE 65536
 
-module top (
-  Jtag tap,
+module top(
+  input        clk,
+  input        rst_n,
+  input        fetch_enable_i,
+  input        clk_gating_i,
+  output logic core_busy_o,
+  output logic uart_tx,
+  input        uart_rx,
+  output logic uart_rts,
+  output logic uart_dtr,
+  input        uart_cts,
+  input        uart_dsr,
 
-  input logic clk,
-  input logic rst,
-  input logic test_mode
+  Jtag         tap
 );
 
-parameter AXI_ADDR_WIDTH      = 32;
-parameter AXI_DATA_WIDTH      = 32;
-parameter AXI_USER_WIDTH      = 1;
-parameter AXI_ID_MASTER_WIDTH = 4;
-parameter AXI_ID_SLAVE_WIDTH  = 6; // slave id width should be master id width + log(master id width)
-parameter DATA_RAM_SIZE       = 65536;
-parameter INSTR_RAM_SIZE      = 65536;
-parameter DATA_ADDR_WIDTH     = $clog2(DATA_RAM_SIZE);
-parameter INSTR_ADDR_WIDTH    = $clog2(INSTR_RAM_SIZE);
-parameter UART_ADDR_WIDTH     = 12;
-parameter UART_DATA_WIDTH     = 32;
-parameter AOS_ADDR_WIDTH      = 1;
-parameter AOS_DATA_WIDTH      = 32;
+  AXI_BUS
+  #(
+    .AXI_ADDR_WIDTH ( `AXI_ADDR_WIDTH      ),
+    .AXI_DATA_WIDTH ( `AXI_DATA_WIDTH      ),
+    .AXI_ID_WIDTH   ( `AXI_ID_MASTER_WIDTH ),
+    .AXI_USER_WIDTH ( `AXI_USER_WIDTH      )
+  )
+  masters[1:0] ();
+
+  AXI_BUS
+  #(
+    .AXI_ADDR_WIDTH ( `AXI_ADDR_WIDTH     ),
+    .AXI_DATA_WIDTH ( `AXI_DATA_WIDTH     ),
+    .AXI_ID_WIDTH   ( `AXI_ID_SLAVE_WIDTH ),
+    .AXI_USER_WIDTH ( `AXI_USER_WIDTH     )
+  )
+  slaves[3:0] ();
+
+  logic [31:0] irq_to_core_int;
+  logic [31:0] boot_addr;
 
 
 
-logic [31: 0] boot_addr_i;
-logic         clock_gating_i;
-
-logic         core_instr_req;
-logic         core_instr_gnt;
-logic         core_instr_rvalid;
-logic [31: 0] core_instr_addr;
-logic [31: 0] core_instr_rdata;
+  // interface between TAP & DTM
+  DTMCS   dtmcs_scan_in;
+  DMI     dmi_scan_in;
+  DTMCS   dtmcs_scan_out;
+  DMI     dmi_scan_out;
+  logic   dtmcs_scan_in_valid;
+  logic   dmi_scan_in_valid;
   
-logic         core_lsu_req;
-logic         core_lsu_gnt;
-logic         core_lsu_rvalid;
-logic         core_lsu_we;
-logic [3:  0] core_lsu_be;
-logic [31: 0] core_lsu_addr;
-logic [31: 0] core_lsu_wdata;
-logic [31: 0] core_lsu_rdata;
+  // interface between DTM & DM
+  DMIPort dm_port();
+  
+  // TAP
+  jtag_tap JTAG_TARGET (
+    .tap           ( tap                 ),
+    .dtmcs_valid_o ( dtmcs_scan_in_valid ),
+    .dtmcs_i       ( dtmcs_scan_out      ),
+    .dtmcs_o       ( dtmcs_scan_in       ),
+    .dmi_valid_o   ( dmi_scan_in_valid   ),
+    .dmi_i         ( dmi_scan_out        ),
+    .dmi_o         ( dmi_scan_in         ),
+  
+    .clk           ( clk                 ),
+    .test_mode     ( 1'b0                )
+  );
+  
+  // DTM
+  debug_transfer_module DTM (
+    .dtmcs_valid_i ( dtmcs_scan_in_valid ),
+    .dtmcs_i       ( dtmcs_scan_in       ),
+    .dtmcs_o       ( dtmcs_scan_out      ),
+    .dmi_valid_i   ( dmi_scan_in_valid   ),
+    .dmi_i         ( dmi_scan_in         ),
+    .dmi_o         ( dmi_scan_out        ),
+  
+    .dm            ( dm_port             ),
+  
+    .clk           ( clk                 ),
+    .rst           ( ~rst_n              ),
+    .test_mode     ( 1'b0                )
+  );
 
-logic                        data_mem_en;
-logic [DATA_ADDR_WIDTH-1:0]  data_mem_addr;
-logic                        data_mem_we;
-logic [AXI_DATA_WIDTH/8-1:0] data_mem_be;
-logic [AXI_DATA_WIDTH-1:0]   data_mem_rdata;
-logic [AXI_DATA_WIDTH-1:0]   data_mem_wdata;
+///////////////////////////////////////////////////////
+//
+//  
+//
+//
+//
+//
+///////////////////////////////////////////////////////  
 
-logic                        instr_mem_en;
-logic [DATA_ADDR_WIDTH-1:0]  instr_mem_addr;
-logic                        instr_mem_we;
-logic [AXI_DATA_WIDTH/8-1:0] instr_mem_be;
-logic [AXI_DATA_WIDTH-1:0]   instr_mem_rdata;
-logic [AXI_DATA_WIDTH-1:0]   instr_mem_wdata;
+  assign boot_addr = 32'h1000_0000;
 
-logic [UART_ADDR_WIDTH-1:0]  uart_addr;
-logic [UART_DATA_WIDTH-1:0]  uart_rdata;
-logic [UART_DATA_WIDTH-1:0]  uart_wdata;
-logic                        uart_enable;
-logic                        uart_write;
+  core_region
+  #(
+    .AXI_ADDR_WIDTH      ( `AXI_ADDR_WIDTH       ),
+    .AXI_DATA_WIDTH      ( `AXI_DATA_WIDTH       ),
+    .AXI_USER_WIDTH      ( `AXI_USER_WIDTH       ),
+    .AXI_ID_MASTER_WIDTH ( `AXI_ID_MASTER_WIDTH  )
+  )
+  core
+  (
+    .clk                 ( clk              ),
+    .rst_n               ( rst_n            ),
+    .clk_gating_i        ( clk_gating_i     ),
+    .testmode_i          ( 1'b0             ),
+    .fetch_enable_i      ( fetch_enable_i   ),
+    .irq_i               ( irq_to_core_int  ),
+    .boot_addr_i         ( boot_addr        ),
+    .core_busy_o         ( core_busy_o      ),
 
-logic [AOS_ADDR_WIDTH-1 :0]  aos_addr;
-logic [AOS_DATA_WIDTH-1 :0]  aos_wdata;
-logic                        aos_valid;
-logic                        aos_ready;
-logic [AOS_DATA_WIDTH-1 :0]  aos_rdata;
+    .dbg_slave           ( dm_port          ),
+    
+    .if_master           ( masters[0]       ),
+    .lsu_master          ( masters[1]       )
+  );
 
-// interface between TAP & DTM
-DTMCS   dtmcs_scan_in;
-DMI     dmi_scan_in;
-DTMCS   dtmcs_scan_out;
-DMI     dmi_scan_out;
-logic   dtmcs_scan_in_valid;
-logic   dmi_scan_in_valid;
+///////////////////////////////////////////////////////
+//
+//  
+//
+//
+//
+//
+///////////////////////////////////////////////////////  
 
-// interface between DTM & DM
-DMIPort dm_port();
+  instr_mem
+  #(
+    .AXI_ADDR_WIDTH     ( `AXI_ADDR_WIDTH     ),
+    .AXI_DATA_WIDTH     ( `AXI_DATA_WIDTH     ),
+    .AXI_ID_SLAVE_WIDTH ( `AXI_ID_SLAVE_WIDTH ),
+    .AXI_USER_WIDTH     ( `AXI_USER_WIDTH     ),
+    .INSTR_RAM_SIZE     ( `INSTR_RAM_SIZE     )
+  )
+  instr_mem_i
+  (
+    .clk   ( clk       ),
+    .rst_n ( rst_n     ),
+    
+    .slave ( slaves[0] )
+  );
+  
+///////////////////////////////////////////////////////
+//
+//  
+//
+//
+//
+//
+///////////////////////////////////////////////////////  
 
-// TAP
-jtag_tap JTAG_TARGET (
-  .tap           ( tap                 ),
-  .dtmcs_valid_o ( dtmcs_scan_in_valid ),
-  .dtmcs_i       ( dtmcs_scan_out      ),
-  .dtmcs_o       ( dtmcs_scan_in       ),
-  .dmi_valid_o   ( dmi_scan_in_valid   ),
-  .dmi_i         ( dmi_scan_out        ),
-  .dmi_o         ( dmi_scan_in         ),
+  data_mem
+  #(
+    .AXI_ADDR_WIDTH     ( `AXI_ADDR_WIDTH     ),
+    .AXI_DATA_WIDTH     ( `AXI_DATA_WIDTH     ),
+    .AXI_ID_SLAVE_WIDTH ( `AXI_ID_SLAVE_WIDTH ),
+    .AXI_USER_WIDTH     ( `AXI_USER_WIDTH     ),
+    .DATA_RAM_SIZE      ( `DATA_RAM_SIZE      )
+  )
+  data_mem_i
+  (
+    .clk   ( clk      ),
+    .rst_n ( rst_n    ),
 
-  .clk           ( clk                 ),
-  .test_mode     ( 1'b0                )
-);
+    .slave ( slaves[1] )
+  );
 
-// DTM
-debug_transfer_module DTM (
-  .dtmcs_valid_i ( dtmcs_scan_in_valid ),
-  .dtmcs_i       ( dtmcs_scan_in       ),
-  .dtmcs_o       ( dtmcs_scan_out      ),
-  .dmi_valid_i   ( dmi_scan_in_valid   ),
-  .dmi_i         ( dmi_scan_in         ),
-  .dmi_o         ( dmi_scan_out        ),
-
-  .dm            ( dm_port             ),
-
-  .clk           ( clk                 ),
-  .rst           ( rst                 ),
-  .test_mode     ( 1'b0                )
-);
-
-assign clock_gating_i = 1'b1;
-assign boot_addr_i = 32'h1000_0000;
-
-// core
-zeroriscy_core
-#(
-  .N_EXT_PERF_COUNTERS ( 0    ),
-  .RV32E               ( 0    ),
-  .RV32M               ( 1    )
-)
-RISCV_CORE
-(
-  .clk_i               ( clk               ),
-  .rst_ni              ( ~rst              ),
-
-  .clock_en_i          ( clock_gating_i    ),
-  .test_en_i           ( 1'b0              ),
-
-  .boot_addr_i         ( boot_addr_i       ),
-  .core_id_i           ( 4'h0              ),
-  .cluster_id_i        ( 6'h0              ),
-
-  .instr_addr_o        ( core_instr_addr   ),
-  .instr_req_o         ( core_instr_req    ),
-  .instr_rdata_i       ( core_instr_rdata  ),
-  .instr_gnt_i         ( core_instr_gnt    ),
-  .instr_rvalid_i      ( core_instr_rvalid ),
-
-  .data_addr_o         ( core_lsu_addr     ),
-  .data_wdata_o        ( core_lsu_wdata    ),
-  .data_we_o           ( core_lsu_we       ),
-  .data_req_o          ( core_lsu_req      ),
-  .data_be_o           ( core_lsu_be       ),
-  .data_rdata_i        ( core_lsu_rdata    ),
-  .data_gnt_i          ( core_lsu_gnt      ),
-  .data_rvalid_i       ( core_lsu_rvalid   ),
-  .data_err_i          ( 1'b0              ),
-
-  .irq_i               ( 1'b0              ),
-  .irq_id_i            ( 4'd0              ),
-  .irq_ack_o           (                   ),
-  .irq_id_o            (                   ),
-
-  .debug_req_i         ( dm_port.valid     ),
-  .debug_gnt_o         (                   ),
-  .debug_rvalid_o      ( dm_port.ready     ),
-  .debug_addr_i        ( dm_port.addr      ),
-  .debug_we_i          ( dm_port.write_en  ),
-  .debug_wdata_i       ( dm_port.wdata     ),
-  .debug_rdata_o       ( dm_port.rdata     ),
-  .debug_halted_o      (                   ),
-  .debug_halt_i        ( 1'b0              ),
-  .debug_resume_i      ( 1'b0              ),
-
-  .fetch_enable_i      ( 1'b1              ),
-  .core_busy_o         (                   ),
-  .ext_perf_counters_i (                   )
-);
-
-instr_ram_wrap
-#(
-  .RAM_SIZE    ( INSTR_RAM_SIZE  ),
-)
-instr_mem (
-  .clk         ( clk             ),
-  .en_i        ( instr_mem_req   ),
-  .addr_i      ( instr_mem_addr  ),
-  .wdata_i     ( instr_mem_wdata ),
-  .rdata_o     ( instr_mem_rdata ),
-  .we_i        ( instr_mem_we    ),
-  .be_i        ( instr_mem_be    ),
-  .bypass_en_i ( 1'b0            )
-);
-
-sp_ram_wrap
-#(
-    .RAM_SIZE    ( DATA_RAM_SIZE  ),
-)
-data_mem (
-    .clk         ( clk            ),
-    .rstn_i      ( ~rst           ),
-    .en_i        ( data_mem_req   ),
-    .addr_i      ( data_mem_addr  ),
-    .wdata_i     ( data_mem_wdata ),
-    .rdata_o     ( data_mem_rdata ),
-    .we_i        ( data_mem_we    ),
-    .be_i        ( data_mem_be    ),
-    .bypass_en_i ( 1'b0           )
-);
-
-uart uart(
-     .clk      (clk            ),
-     .rst      (rst            ),
-     .addr_i   (uart_addr      ),
-     .wdata_i  (uart_wdata     ),
-     .write_i  (uart_write     ),
-     .sel_i    (1'b1  ),
-     .enable_i (uart_enable    ),
-     .rdata_o  (uart_rdata     ),
-     .ready_o  (               )
-);
-
-aos_wrapper aos#(
-)(
-     .axi4_strm_addr_i       (aos_addr  ),
-     .axi4_strm_in_wdata_i   (aos_wdata ),
-     .axi4_strm_in_valid_i   (aos_valid ),
-     .axi4_strm_in_ready_o   (aos_ready ),
-     .axi4_strm_in_keep_i    (1'b1      ),
-     .axi4_strm_in_last_i    (1'b0      ),
-     .axi4_strm_out_rdata_o  (aos_rdata ),
-     .clk                    (clk       ),
-     .rst                    (rst       )
-);
+///////////////////////////////////////////////////////
+//
+//  
+//
+//
+//
+//
+/////////////////////////////////////////////////////// 
+  aos
+  #(
+    .AXI_ADDR_WIDTH     (`AXI_ADDR_WIDTH    ),
+    .AXI_DATA_WIDTH     (`AXI_DATA_WIDTH    ),
+    .AXI_ID_SLAVE_WIDTH (`AXI_ID_SLAVE_WIDTH),
+    .AXI_USER_WIDTH     (`AXI_USER_WIDTH    ),
+    .AOS_ADDR_WIDTH     (1                  )
+  ) 
+  aos_i
+  (
+   .clk   ( clk    ),
+   .rst   (~rst_n  ),
+   
+   .slave (slaves[3])
+  );
 
 
-axi AXI (
-  .clk                 ( clk               ),
-  .rst                 ( rst               ),
-  .testmode_i          ( 1'b0              ),
-                       
-  .core_instr_req_i    ( core_instr_req    ),
-  .core_instr_gnt_o    ( core_instr_gnt    ),
-  .core_instr_rvalid_o ( core_instr_rvalid ),
-  .core_instr_addr_i   ( core_instr_addr   ),
-  .core_instr_rdata_o  ( core_instr_rdata  ),
-                     
-  .core_lsu_req_i      ( core_lsu_req      ),
-  .core_lsu_gnt_o      ( core_lsu_gnt      ),
-  .core_lsu_rvalid_o   ( core_lsu_rvalid   ),
-  .core_lsu_we_i       ( core_lsu_we       ),
-  .core_lsu_be_i       ( core_lsu_be       ),
-  .core_lsu_addr_i     ( core_lsu_addr     ),
-  .core_lsu_wdata_i    ( core_lsu_wdata    ),
-  .core_lsu_rdata_o    ( core_lsu_rdata    ),
-                      
-  .instr_mem_req_o     ( instr_mem_req     ),
-  .instr_mem_addr_o    ( instr_mem_addr    ),
-  .instr_mem_we_o      ( instr_mem_we      ),
-  .instr_mem_be_o      ( instr_mem_be      ),
-  .instr_mem_rdata_i   ( instr_mem_rdata   ),
-  .instr_mem_wdata_o   ( instr_mem_wdata   ),
-                       
-  .data_mem_req_o      ( data_mem_req      ),
-  .data_mem_addr_o     ( data_mem_addr     ),
-  .data_mem_we_o       ( data_mem_we       ),
-  .data_mem_be_o       ( data_mem_be       ),
-  .data_mem_rdata_i    ( data_mem_rdata    ),
-  .data_mem_wdata_o    ( data_mem_wdata    ),
+///////////////////////////////////////////////////////
+//
+//  
+//
+//
+//
+//
+///////////////////////////////////////////////////////  
+ 
 
-  .uart_addr_o         (uart_addr          ),
-  .uart_wdata_o        (uart_wdata         ),
-  .uart_write_o        (uart_write         ),
-  .uart_enable_o       (uart_enable        ),
-  .uart_rdata_i        (uart_rdata         ),
+  peripherals
+  #(
+    .AXI_ADDR_WIDTH      ( `AXI_ADDR_WIDTH      ),
+    .AXI_DATA_WIDTH      ( `AXI_DATA_WIDTH      ),
+    .AXI_SLAVE_ID_WIDTH  ( `AXI_ID_SLAVE_WIDTH  ),
+    .AXI_MASTER_ID_WIDTH ( `AXI_ID_MASTER_WIDTH ),
+    .AXI_USER_WIDTH      ( `AXI_USER_WIDTH      )
+  )
+  peripherals_i
+  (
+    .clk_i           ( clk             ),
+    .rst_n           ( rst_n           ),
+    .testmode_i      ( 1'b0            ),
+    .slave           ( slaves[2]       ),
+    .uart_tx         ( uart_tx         ),
+    .uart_rx         ( uart_rx         ),
+    .uart_rts        ( uart_rts        ),
+    .uart_dtr        ( uart_dtr        ),
+    .uart_cts        ( uart_cts        ),
+    .uart_dsr        ( uart_dsr        ),
+    .core_busy_i     ( core_busy_o     ),
+    .irq_o           ( irq_to_core_int ),
+    .fetch_enable_i  ( fetch_enable_i  ),
+    .fetch_enable_o  (                 ),
+    .clk_gate_core_o (                 )
+  );
 
-  .aos_addr_o          (aos_addr           ),
-  .aos_wdata_o         (aos_wdata          ),
-  .aos_valid_o         (aos_valid          ),
-  .aos_rdata_i         (aos_rdata          )  
-);
+///////////////////////////////////////////////////////
+//
+//  
+//
+//
+//
+//
+///////////////////////////////////////////////////////  
 
-mmux MMUX(
-  .from_lsu(data_mem), // INPUT
-  .to_mem(lsu_to_mem), // OUTPUT
-  .to_uart(lsu_to_uart) // OUTPUT
-);
-
-uart_wrapper UART_WRP(
-  .from_core(lsu_to_uart),
-  .clk(clk),
-  .rst(rst)
-);
-
+  axi_node_intf_wrap
+  #(
+    .NB_MASTER      ( 4                              ),
+    .NB_SLAVE       ( 2                              ),
+    .AXI_ADDR_WIDTH ( `AXI_ADDR_WIDTH                ),
+    .AXI_DATA_WIDTH ( `AXI_DATA_WIDTH                ),
+    .AXI_ID_WIDTH   ( `AXI_ID_MASTER_WIDTH           ),
+    .AXI_USER_WIDTH ( `AXI_USER_WIDTH                )
+  )
+  axi_interconnect_i 
+  (
+    .clk            ( clk                            ),
+    .rst_n          ( rst_n                          ),
+    .test_en_i      ( 1'b0                           ),
+    .master         ( slaves                         ),
+    .slave          ( masters                        ),
+    .start_addr_i   ( {32'h2200_0000,32'h2100_0000, 32'h1013_0000, 32'h1000_0000} ),
+    .end_addr_i     ( {32'h2200_0004,32'h2100_FFFF, 32'h1013_FFFF, 32'h1003_FFFF} )
+  );
 endmodule

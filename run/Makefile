@@ -1,27 +1,37 @@
 # Project paths
-PROJECT_DIR := $(shell pwd)/..
-TEST_DIR = $(PROJECT_DIR)/run
-CACHE_DIR = $(TEST_DIR)/cache
-UART_DIR  = $(PROJECT_DIR)/uart
-ZERO_BUGGY_DIR = $(PROJECT_DIR)/zero-buggy
-ZERO_RISCY_DIR = $(PROJECT_DIR)/zero-riscy
-JTAG_DPI_DIR = $(PROJECT_DIR)/openocd_jtag_dpi
-AXI_DIR = $(PROJECT_DIR)/axi
-SW_DIR = $(PROJECT_DIR)/sw
+PROJECT_DIR     := $(shell pwd)/..
+TEST_DIR         = $(PROJECT_DIR)/run
+PERIPHERALS_DIR  = $(PROJECT_DIR)/peripherals
+ZERO_BUGGY_DIR   = $(PROJECT_DIR)/zero-buggy
+ZERO_RISCY_DIR   = $(PROJECT_DIR)/zero-riscy
+JTAG_DPI_DIR     = $(PROJECT_DIR)/openocd_jtag_dpi
+UART_DPI_DIR     = $(PROJECT_DIR)/uartdpi
+INT_DIR					 = $(PROJECT_DIR)/includes
+AXI_DIR          = $(PROJECT_DIR)/axi
+APB_DIR          = $(PROJECT_DIR)/apb
+RAM_DIR          = $(PROJECT_DIR)/ram
+SW_DIR           = $(PROJECT_DIR)/sw
+UART_DIR         = $(PERIPHERALS_DIR)/apb_uart_sv
+TIMER_DIR        = $(PERIPHERALS_DIR)/apb_timer
+EVENT_UNIT_DIR   = $(PERIPHERALS_DIR)/apb_event_unit
+CACHE_DIR        = $(TEST_DIR)/cache
+AOS_DIR          = $(PROJECT_DIR)/aos
+AOS_DATA_DIR     = $(PROJECT_DIR)/data
+AOS_MODULE_DIR   = $(PROJECT_DIR)/aos_module
 
 # Toolchain
-CC = /opt/riscv/bin/riscv32-unknown-elf-gcc
-DBG = /opt/riscv/bin/riscv32-unknown-elf-gdb
-OCD = $(PROJECT_DIR)/riscv-openocd/build/bin/openocd
+CC    = /opt/riscv/bin/riscv32-unknown-elf-gcc
+DBG   = /opt/riscv/bin/riscv32-unknown-elf-gdb
+OCD   = $(PROJECT_DIR)/riscv-openocd/build/bin/openocd
 SPIKE = $(PROJECT_DIR)/riscv-isa-sim/build/bin/spike
-MAKE = make
+MAKE  = make
 
 # Environment paths
 INC_DIR = /opt/Cadence/INCISIV/cur/tools/include
 
-UART_DPI_SRC = $(UART_DIR)/uartdpi.c
-C_SRC = $(JTAG_DPI_DIR)/jtag_dpi.c
-SV_SRC = "\
+UART_DPI_SRC = $(UART_DPI_DIR)/uartdpi.c
+C_SRC        = $(JTAG_DPI_DIR)/jtag_dpi.c
+SV_SRC       = "\
           $(ZERO_BUGGY_DIR)/jtag_tap.sv \
           $(ZERO_BUGGY_DIR)/debug_transfer_module.sv \
           $(JTAG_DPI_DIR)/jtag_dpi.sv \
@@ -49,7 +59,7 @@ SV_SRC = "\
           $(PROJECT_DIR)/src/cluster_clock_gating.sv \
           $(PROJECT_DIR)/src/top.sv \
           $(PROJECT_DIR)/src/test.sv \
-					$(AXI_DIR)/axi.sv \
+					$(PROJECT_DIR)/src/core_region.sv \
 					$(AXI_DIR)/axi_node/axi_address_decoder_AR.sv \
 					$(AXI_DIR)/axi_node/axi_address_decoder_AR.sv \
 					$(AXI_DIR)/axi_node/axi_address_decoder_AW.sv \
@@ -81,30 +91,51 @@ SV_SRC = "\
 					$(AXI_DIR)/core2axi/axi_r_buffer.sv \
 					$(AXI_DIR)/core2axi/axi_w_buffer.sv \
 					$(AXI_DIR)/core2axi/axi_slice.sv \
-					$(AXI_DIR)/ram/sp_ram.sv \
-					$(AXI_DIR)/ram/sp_ram_wrap.sv \
-					$(AXI_DIR)/ram/axi_mem_if_SP_wrap.sv \
-					$(AXI_DIR)/ram/axi_mem_if_SP.sv \
-					$(AXI_DIR)/ram/axi_read_only_ctrl.sv \
-					$(AXI_DIR)/ram/axi_write_only_ctrl.sv \
-					$(AXI_DIR)/ram/instr_ram_wrap.sv \
-					$(AXI_DIR)/ram/boot_rom_wrap.sv \
-					$(AXI_DIR)/ram/boot_code.sv \
-					$(AXI_DIR)/ram/ram_mux.sv \
-					$(AXI_DIR)/includes/axi_bus.sv \
-					$(AXI_DIR)/includes/config.sv \
+					$(INT_DIR)/axi_bus.sv \
+					$(INT_DIR)/apb_bus.sv \
+					$(INT_DIR)/config.sv \
+					$(RAM_DIR)/axi_mem_if_SP.sv \
+					$(RAM_DIR)/axi_mem_if_SP_wrap.sv \
+					$(RAM_DIR)/axi_read_only_ctrl.sv \
+					$(RAM_DIR)/axi_write_only_ctrl.sv \
+					$(RAM_DIR)/boot_code.sv \
+					$(RAM_DIR)/boot_rom_wrap.sv \
+					$(RAM_DIR)/data_mem.sv \
+					$(RAM_DIR)/instr_mem.sv \
+					$(RAM_DIR)/instr_ram_wrap.sv \
+					$(RAM_DIR)/sp_ram.sv \
+					$(RAM_DIR)/sp_ram_wrap.sv \
+					$(APB_DIR)/apb_node/apb_node.sv \
+					$(APB_DIR)/apb_node/apb_node_wrap.sv \
+					$(APB_DIR)/axi2apb/axi2apb32.sv \
+					$(APB_DIR)/axi2apb/axi2apb_wrap.sv \
+					$(PERIPHERALS_DIR)/periph_bus_wrap.sv \
+					$(PERIPHERALS_DIR)/peripherals.sv \
+					$(TIMER_DIR)/apb_timer.sv \
+					$(TIMER_DIR)/timer.sv \
 					$(UART_DIR)/apb_uart_sv.sv \
 					$(UART_DIR)/io_generic_fifo.sv \
 					$(UART_DIR)/uart_interrupt.sv \
 					$(UART_DIR)/uart_rx.sv \
 					$(UART_DIR)/uart_tx.sv \
-					$(UART_DIR)/uartdpi.sv \
-					$(UART_DIR)/uart.sv \
+					$(EVENT_UNIT_DIR)/apb_event_unit.sv \
+					$(EVENT_UNIT_DIR)/generic_service_unit.sv \
+					$(EVENT_UNIT_DIR)/sleep_unit.sv \
+					$(EVENT_UNIT_DIR)/include/defines_event_unit.sv \
+					$(UART_DPI_DIR)/uartdpi.sv \
+								$(AOS_MODULE_DIR)/fifo.v \
+								$(AOS_DATA_DIR)/pydpi_gen_params.sv \
+								$(AOS_DATA_DIR)/M_0.sv \
+								$(AOS_DATA_DIR)/M_1.sv \
+								$(AOS_DATA_DIR)/M_2.sv \
+								$(AOS_MODULE_DIR)/aos_wrapper.sv \
+								$(AOS_DIR)/hdl/aos_axis.sv \
+								$(AOS_MODULE_DIR)/aos.sv \
 "                             
 
 # Parameters
-VJTAG_PORT = 22221
-GDB_PORT = 3331
+VJTAG_PORT = 224444
+GDB_PORT = 3322
 
 # Set V=1 when calling make to enable verbose output
 # mainly for debugging purposes.
@@ -141,12 +172,14 @@ jtag_dpi.so: uartdpi_so
 build: jtag_dpi.so
 	mkdir -p $(CACHE_DIR)
 	cp $(SW_DIR)/hello.s $(CACHE_DIR)
+	cp $(SW_DIR)/aos.s   $(CACHE_DIR)
 	cp $(SW_DIR)/uart.s  $(CACHE_DIR)
 	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
 	cp $(SW_DIR)/uart.c $(CACHE_DIR)
 	cp $(SW_DIR)/uart_boot.s $(CACHE_DIR)
 	cp $(SW_DIR)/link.ld $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart.elf  uart.s
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o aos.elf  aos.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart_c.elf uart.c uart_boot.s
@@ -160,9 +193,16 @@ inner-ncsim: build
 		+incdir+$(ZERO_BUGGY_DIR) \
 		+incdir+$(ZERO_RISCY_DIR)/include \
 		+incdir+$(PROJECT_DIR)/src \
-		+incdir+$(AXI_DIR)/includes \
+		+incdir+$(INT_DIR) \
 		+incdir+$(AXI_DIR)/axi_node \
+		+incdir+$(AXI_DIR)/core2axi \
+		+incdir+$(APB_DIR)/apb_node \
+		+incdir+$(APB_DIR)/axi2apb \
 		+incdir+$(UART_DIR) \
+		+incdir+$(TIMER_DIR) \
+		+incdir+$(EVENT_UNIT_DIR) \
+		+incdir+$(EVENT_UNIT_DIR)/include \
+		+incdir+$(AOS_DIR)/hdl \
 		+define+JTAG_DPI_PORT=$(VJTAG_PORT) \
 		+access+r -mccodegen $(JTAG_FLAG) +fsdb+struct=on $(SV_SRC) &
 
@@ -220,4 +260,4 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/uart.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/aos.elf
