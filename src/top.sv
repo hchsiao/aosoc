@@ -22,6 +22,9 @@ parameter DATA_ADDR_WIDTH     = $clog2(DATA_RAM_SIZE);
 parameter INSTR_ADDR_WIDTH    = $clog2(INSTR_RAM_SIZE);
 parameter UART_ADDR_WIDTH     = 12;
 parameter UART_DATA_WIDTH     = 32;
+parameter AOS_ADDR_WIDTH      = 1;
+parameter AOS_DATA_WIDTH      = 32;
+
 
 
 logic [31: 0] boot_addr_i;
@@ -62,6 +65,11 @@ logic [UART_DATA_WIDTH-1:0]  uart_wdata;
 logic                        uart_enable;
 logic                        uart_write;
 
+logic [AOS_ADDR_WIDTH-1 :0]  aos_addr;
+logic [AOS_DATA_WIDTH-1 :0]  aos_wdata;
+logic                        aos_valid;
+logic                        aos_ready;
+logic [AOS_DATA_WIDTH-1 :0]  aos_rdata;
 
 // interface between TAP & DTM
 DTMCS   dtmcs_scan_in;
@@ -206,6 +214,19 @@ uart uart(
      .ready_o  (               )
 );
 
+aos_wrapper aos#(
+)(
+     .axi4_strm_addr_i       (aos_addr  ),
+     .axi4_strm_in_wdata_i   (aos_wdata ),
+     .axi4_strm_in_valid_i   (aos_valid ),
+     .axi4_strm_in_ready_o   (aos_ready ),
+     .axi4_strm_in_keep_i    (1'b1      ),
+     .axi4_strm_in_last_i    (1'b0      ),
+     .axi4_strm_out_rdata_o  (aos_rdata ),
+     .clk                    (clk       ),
+     .rst                    (rst       )
+);
+
 
 axi AXI (
   .clk                 ( clk               ),
@@ -245,7 +266,12 @@ axi AXI (
   .uart_wdata_o        (uart_wdata         ),
   .uart_write_o        (uart_write         ),
   .uart_enable_o       (uart_enable        ),
-  .uart_rdata_i        (uart_rdata         )
+  .uart_rdata_i        (uart_rdata         ),
+
+  .aos_addr_o          (aos_addr           ),
+  .aos_wdata_o         (aos_wdata          ),
+  .aos_valid_o         (aos_valid          ),
+  .aos_rdata_i         (aos_rdata          )  
 );
 
 mmux MMUX(
