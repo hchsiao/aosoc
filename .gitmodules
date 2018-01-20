@@ -16,3 +16,6 @@
 [submodule "zero-buggy"]
 	path = zero-buggy
 	url = http://vlsigit.ee.ncku.edu.tw/hchsiao/zero-buggy.git
+[submodule "aos"]
+	path = aos
+	url = http://vlsigit.ee.ncku.edu.tw/hchsiao/aos.git
