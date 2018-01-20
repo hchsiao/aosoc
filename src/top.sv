@@ -14,10 +14,10 @@ module top (
 parameter AXI_ADDR_WIDTH      = 32;
 parameter AXI_DATA_WIDTH      = 32;
 parameter AXI_USER_WIDTH      = 1;
-parameter AXI_ID_MASTER_WIDTH = 2;
-parameter AXI_ID_SLAVE_WIDTH  = 3; // slave id width should be master id width + log(master id width)
-parameter DATA_RAM_SIZE       = 32768;
-parameter INSTR_RAM_SIZE      = 32768;
+parameter AXI_ID_MASTER_WIDTH = 4;
+parameter AXI_ID_SLAVE_WIDTH  = 6; // slave id width should be master id width + log(master id width)
+parameter DATA_RAM_SIZE       = 65536;
+parameter INSTR_RAM_SIZE      = 65536;
 parameter DATA_ADDR_WIDTH     = $clog2(DATA_RAM_SIZE);
 parameter INSTR_ADDR_WIDTH    = $clog2(INSTR_RAM_SIZE);
 parameter UART_ADDR_WIDTH     = 12;
@@ -163,28 +163,9 @@ RISCV_CORE
   .ext_perf_counters_i (                   )
 );
 
-/*sp_ram_wrap
-#(
-    .RAM_SIZE    ( INSTR_RAM_SIZE  ),
-    .DATA_WIDTH  ( AXI_DATA_WIDTH  )
-)
-instr_mem (
-    .clk         ( clk             ),
-    .rstn_i      ( ~rst            ),
-    .en_i        ( instr_mem_req   ),
-    .addr_i      ( instr_mem_addr  ),
-    .wdata_i     ( instr_mem_wdata ),
-    .rdata_o     ( instr_mem_rdata ),
-    .we_i        ( instr_mem_we    ),
-    .be_i        ( instr_mem_be    ),
-    .bypass_en_i ( 1'b0            )
-);
-*/
-
 instr_ram_wrap
 #(
   .RAM_SIZE    ( INSTR_RAM_SIZE  ),
-  .DATA_WIDTH  ( AXI_DATA_WIDTH  )
 )
 instr_mem (
   .clk         ( clk             ),
@@ -200,7 +181,6 @@ instr_mem (
 sp_ram_wrap
 #(
     .RAM_SIZE    ( DATA_RAM_SIZE  ),
-    .DATA_WIDTH  ( AXI_DATA_WIDTH )
 )
 data_mem (
     .clk         ( clk            ),
