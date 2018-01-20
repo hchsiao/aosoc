@@ -143,10 +143,13 @@ build: jtag_dpi.so
 	cp $(SW_DIR)/hello.s $(CACHE_DIR)
 	cp $(SW_DIR)/uart.s  $(CACHE_DIR)
 	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
+	cp $(SW_DIR)/uart.c $(CACHE_DIR)
+	cp $(SW_DIR)/uart_boot.s $(CACHE_DIR)
 	cp $(SW_DIR)/link.ld $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart.elf  uart.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart_c.elf uart.c uart_boot.s
 
 # TODO: should not run alone
 inner-ncsim: build

@@ -248,4 +248,16 @@ axi AXI (
   .uart_rdata_i        (uart_rdata         )
 );
 
+mmux MMUX(
+  .from_lsu(data_mem), // INPUT
+  .to_mem(lsu_to_mem), // OUTPUT
+  .to_uart(lsu_to_uart) // OUTPUT
+);
+
+uart_wrapper UART_WRP(
+  .from_core(lsu_to_uart),
+  .clk(clk),
+  .rst(rst)
+);
+
 endmodule

@@ -1,0 +1,18 @@
+[submodule "riscv-fesvr"]
+	path = riscv-fesvr
+	url = https://github.com/riscv/riscv-fesvr.git
+[submodule "riscv-isa-sim"]
+	path = riscv-isa-sim
+	url = https://github.com/hchsiao/riscv-isa-sim.git
+[submodule "riscv-openocd"]
+	path = riscv-openocd
+	url = https://github.com/hchsiao/riscv-openocd.git
+[submodule "zero-riscy"]
+	path = zero-riscy
+	url = https://github.com/hchsiao/zero-riscy.git
+[submodule "openocd_jtag_dpi"]
+	path = openocd_jtag_dpi
+	url = https://github.com/hchsiao/openocd_jtag_dpi.git
+[submodule "zero-buggy"]
+	path = zero-buggy
+	url = http://vlsigit.ee.ncku.edu.tw/hchsiao/zero-buggy.git

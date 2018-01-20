@@ -4,4 +4,3 @@ void main(void) {
   for (;;)
     *((char*)uart_base) = 'a';
 }
-
