@@ -42,7 +42,7 @@ module data_mem
     if (!rst_n)
       led <= 7'b0;
     else
-      if (data_mem_req && data_mem_we && data_mem_be[0] && data_mem_addr == 'h10130000)
+      if (data_mem_req && data_mem_we && data_mem_be[0] && data_mem_addr == 'hc000)
         led <= data_mem_wdata[7:0];
   end
 

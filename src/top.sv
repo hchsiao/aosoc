@@ -46,7 +46,7 @@ module top(
   assign tap.TMS = tms;
   assign tap.TCK = tck;
   assign tap.TDI = tdi;
-  assign tap.TDO = tdo;
+  assign tdo = tap.TDO;
 
   wire        fetch_enable_i = 1'b1;
   wire        clk_gating_i = 1'b1;

@@ -261,3 +261,6 @@ clean:
 
 gdb:
 	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/uart.elf
+
+fpga:
+	-$(Q)cd $(CACHE_DIR); GDB_PORT=$(GDB_PORT) $(OCD) $(OPENOCD_FLAG) -f $(PROJECT_DIR)/src/fpga.cfg
