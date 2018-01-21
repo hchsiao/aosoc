@@ -65,6 +65,7 @@ top TOP (
   .clk            ( clk  ),
   .rst_n          ( ~rst ),
   .core_busy_o    (      ),
+  .led            (      ),
   .uart_tx        ( tx   ),
   .uart_rx        ( rx   ),
   .uart_rts       (      ),

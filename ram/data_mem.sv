@@ -25,6 +25,8 @@ module data_mem
   input clk,
   input rst_n,
 
+  output logic [7:0] led,
+
   AXI_BUS.Slave slave
 );
 
@@ -34,6 +36,15 @@ module data_mem
   logic [AXI_DATA_WIDTH/8-1:0] data_mem_be;
   logic [AXI_DATA_WIDTH-1:0]   data_mem_rdata;
   logic [AXI_DATA_WIDTH-1:0]   data_mem_wdata;
+
+  always_ff @(posedge clk)
+  begin
+    if (!rst_n)
+      led <= 7'b0;
+    else
+      if (data_mem_req && data_mem_we && data_mem_be[0] && data_mem_addr == 'h10130000)
+        led <= data_mem_wdata[7:0];
+  end
 
   axi_mem_if_SP_wrap
   #(

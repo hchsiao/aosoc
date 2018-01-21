@@ -36,6 +36,8 @@ module top(
 	input tdi,
 	output tdo,
 
+  output [7:0]  led,
+
   input        clk,
   input        rst_n
 );
@@ -194,6 +196,7 @@ module top(
   (
     .clk   ( clk      ),
     .rst_n ( rst_n    ),
+    .led   ( led      ),
 
     .slave ( slaves[1] )
   );
