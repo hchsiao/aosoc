@@ -54,7 +54,7 @@ module top(
     .AXI_ID_WIDTH   ( `AXI_ID_SLAVE_WIDTH ),
     .AXI_USER_WIDTH ( `AXI_USER_WIDTH     )
   )
-  slaves[2:0] ();
+  slaves[3:0] ();
 
   logic [31:0] irq_to_core_int;
   logic [31:0] boot_addr;
@@ -195,7 +195,7 @@ module top(
 //
 //
 /////////////////////////////////////////////////////// 
-/*  aos
+  aos
   #(
     .AXI_ADDR_WIDTH     (`AXI_ADDR_WIDTH    ),
     .AXI_DATA_WIDTH     (`AXI_DATA_WIDTH    ),
@@ -211,7 +211,7 @@ module top(
    .slave (slaves[3])
   );
 
-*/
+
 ///////////////////////////////////////////////////////
 //
 //  
@@ -260,7 +260,7 @@ module top(
 
   axi_node_intf_wrap
   #(
-    .NB_MASTER      ( 3                              ),
+    .NB_MASTER      ( 4                              ),
     .NB_SLAVE       ( 2                              ),
     .AXI_ADDR_WIDTH ( `AXI_ADDR_WIDTH                ),
     .AXI_DATA_WIDTH ( `AXI_DATA_WIDTH                ),
@@ -274,7 +274,7 @@ module top(
     .test_en_i      ( 1'b0                           ),
     .master         ( slaves                         ),
     .slave          ( masters                        ),
-    .start_addr_i   ( {/*32'h2200_0000,*/32'h2100_0000, 32'h1013_0000, 32'h1000_0000} ),
-    .end_addr_i     ( {/*32'h2200_0004,*/32'h2100_FFFF, 32'h1013_FFFF, 32'h1003_FFFF} )
+    .start_addr_i   ( {32'h2200_0000,32'h2100_0000, 32'h1013_0000, 32'h1000_0000} ),
+    .end_addr_i     ( {32'h2200_0004,32'h2100_FFFF, 32'h1013_FFFF, 32'h1003_FFFF} )
   );
 endmodule
