@@ -14,7 +14,7 @@
 // always define ASIC when we do a synthesis run
 `ifndef PULP_FPGA_EMUL
 `ifdef SYNTHESIS
-`define ASIC
+//`define ASIC
 `endif
 `endif
 

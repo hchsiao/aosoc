@@ -58,12 +58,12 @@ UART_HOST
 );
 
 top TOP (
-  .tap            ( tap  ),
-
+	.tms       ( tap.TMS     ),
+  .tck       ( tap.TCK     ),
+	.tdi       ( tap.TDI     ),
+	.tdo       ( tap.TDO     ),
   .clk            ( clk  ),
   .rst_n          ( ~rst ),
-  .fetch_enable_i ( 1'b1 ),
-  .clk_gating_i   ( 1'b1 ),
   .core_busy_o    (      ),
   .uart_tx        ( tx   ),
   .uart_rx        ( rx   ),

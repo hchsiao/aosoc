@@ -23,10 +23,6 @@
 `define DATA_RAM_SIZE 131072
 
 module top(
-  input        clk,
-  input        rst_n,
-  input        fetch_enable_i,
-  input        clk_gating_i,
   output logic core_busy_o,
   output logic uart_tx,
   input        uart_rx,
@@ -35,8 +31,23 @@ module top(
   input        uart_cts,
   input        uart_dsr,
 
-  Jtag         tap
+	input tms,
+  input tck,
+	input tdi,
+	output tdo,
+
+  input        clk,
+  input        rst_n
 );
+
+  Jtag  tap();
+  assign tap.TMS = tms;
+  assign tap.TCK = tck;
+  assign tap.TDI = tdi;
+  assign tap.TDO = tdo;
+
+  wire        fetch_enable_i = 1'b1;
+  wire        clk_gating_i = 1'b1;
 
   AXI_BUS
   #(
