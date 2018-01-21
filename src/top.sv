@@ -19,8 +19,8 @@
 `define AXI_USER_WIDTH 1
 `define AXI_ID_MASTER_WIDTH 2
 `define AXI_ID_SLAVE_WIDTH 3
-`define INSTR_RAM_SIZE 65536
-`define DATA_RAM_SIZE 65536
+`define INSTR_RAM_SIZE 131072
+`define DATA_RAM_SIZE 131072
 
 module top(
   input        clk,
@@ -111,7 +111,7 @@ module top(
 //
 ///////////////////////////////////////////////////////  
 
-  assign boot_addr = 32'h1000_0000;
+  assign boot_addr = 32'h1002_0000;
 
   core_region
   #(

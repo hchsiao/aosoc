@@ -24,8 +24,12 @@ module sp_ram
     input  logic [3:0]              be_i
   );
 
-  logic [3:0][7:0] mem[NUM_WORDS];
+  localparam words = NUM_WORDS/4;
+
+  logic [3:0][7:0] mem[words];
   logic [3:0][7:0] wdata;
+
+
 
   integer i;
 

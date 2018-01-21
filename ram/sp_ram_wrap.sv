@@ -13,7 +13,7 @@
 module sp_ram_wrap
   #(
     parameter RAM_SIZE   = 32768, 
-    parameter ADDR_WIDTH = $clog2(RAM_SIZE)
+    parameter ADDR_WIDTH = $clog2(RAM_SIZE)-2
   )(
     // Clock and Reset
     input  logic                    clk,
