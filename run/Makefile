@@ -260,4 +260,4 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/aos.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/uart.elf
