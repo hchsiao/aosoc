@@ -132,8 +132,8 @@ SV_SRC       = "\
 "                             
 
 # Parameters
-VJTAG_PORT = 23453
-GDB_PORT = 3392
+VJTAG_PORT = 23454
+GDB_PORT = 3393
 
 # Set V=1 when calling make to enable verbose output
 # mainly for debugging purposes.
@@ -170,14 +170,12 @@ jtag_dpi.so: uartdpi_so
 build: jtag_dpi.so
 	mkdir -p $(CACHE_DIR)
 	cp $(SW_DIR)/hello.s $(CACHE_DIR)
-	cp $(SW_DIR)/aos.c   $(CACHE_DIR)
 	cp $(SW_DIR)/uart.s  $(CACHE_DIR)
 	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
 	cp $(SW_DIR)/uart.c $(CACHE_DIR)
 	cp $(SW_DIR)/uart_boot.s $(CACHE_DIR)
 	cp $(SW_DIR)/link.ld $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart.elf  uart.s
-	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o aos.elf  aos.c
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart_c.elf uart.c uart_boot.s
@@ -258,7 +256,7 @@ clean:
 	@rm -rf $(CACHE_DIR)
 
 gdb:
-	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/uart.elf
+	riscv32-unknown-elf-gdb -ex "set remotetimeout 60" -ex "target remote localhost:$(GDB_PORT)" -ex "load" cache/hello.elf
 
 fpga:
 	-$(Q)cd $(CACHE_DIR); GDB_PORT=$(GDB_PORT) $(OCD) $(OPENOCD_FLAG) -f $(PROJECT_DIR)/src/fpga.cfg
