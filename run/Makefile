@@ -123,19 +123,17 @@ SV_SRC       = "\
 					$(EVENT_UNIT_DIR)/sleep_unit.sv \
 					$(EVENT_UNIT_DIR)/include/defines_event_unit.sv \
 					$(UART_DPI_DIR)/uartdpi.sv \
-								$(AOS_MODULE_DIR)/fifo.v \
 								$(AOS_DATA_DIR)/pydpi_gen_params.sv \
 								$(AOS_DATA_DIR)/M_0.sv \
 								$(AOS_DATA_DIR)/M_1.sv \
 								$(AOS_DATA_DIR)/M_2.sv \
-								$(AOS_MODULE_DIR)/aos_wrapper.sv \
 								$(AOS_DIR)/hdl/aos_axis.sv \
 								$(AOS_MODULE_DIR)/aos.sv \
 "                             
 
 # Parameters
-VJTAG_PORT = 224444
-GDB_PORT = 3322
+VJTAG_PORT = 23453
+GDB_PORT = 3392
 
 # Set V=1 when calling make to enable verbose output
 # mainly for debugging purposes.
@@ -172,14 +170,14 @@ jtag_dpi.so: uartdpi_so
 build: jtag_dpi.so
 	mkdir -p $(CACHE_DIR)
 	cp $(SW_DIR)/hello.s $(CACHE_DIR)
-	cp $(SW_DIR)/aos.s   $(CACHE_DIR)
+	cp $(SW_DIR)/aos.c   $(CACHE_DIR)
 	cp $(SW_DIR)/uart.s  $(CACHE_DIR)
 	cp $(SW_DIR)/dummy.s $(CACHE_DIR)
 	cp $(SW_DIR)/uart.c $(CACHE_DIR)
 	cp $(SW_DIR)/uart_boot.s $(CACHE_DIR)
 	cp $(SW_DIR)/link.ld $(CACHE_DIR)
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart.elf  uart.s
-	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o aos.elf  aos.s
+	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o aos.elf  aos.c
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o hello.elf hello.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o dummy.elf dummy.s
 	$(Q)cd $(CACHE_DIR); $(CC) -g -nostdlib -nostartfiles -Tlink.ld -o uart_c.elf uart.c uart_boot.s
