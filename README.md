@@ -1,6 +1,6 @@
 # AoSoC
 ---
-**Update (May 10, 2020)**: Due to the fast evolution of the RISC-V community, some dependencies (software and IP) of this project were deprecated or outdated. With the latest set of tools, workarounds in our implementation may no longer be required or they may have provided better solutions.
+**Update (May 10, 2020)**: Due to the fast evolution of the RISC-V community, some dependencies (software and IP) of this project were deprecated or outdated. With the latest set of tools, workarounds in our code may no longer be required or they may have provided better solutions.
 
 ## System description
 This is a system-on-chip (SoC) project utilizing always-on-sensor (AoS, a proprietary image processing IP which detects visual objects 24/7 with minimum power). The system can be used as a building block to awake more power demanding IP to achieve a low-power design, targeting in the domain of Internet-of-Things.
@@ -15,7 +15,7 @@ _List of IP_:
 | zero-riscy | [pulp-platform](https://github.com/pulp-platform) | A low-footprint RISC-V (RV32IMC) core |
 | zero-buggy | [hchsiao](https://github.com/hchsiao/) | RISC-V compatible debug module (debug transfer module) written for zero-riscy |
 
-**Note to zero-buggy**: At the moment this project started, the debug module in zero-riscy is OpenRISC 1200 compatible (adv_debugsys from opencores.org). Also, the spec of RISC-V debug module was just a draft that time
+**Note to zero-buggy**: At the moment this project started, the debug module in zero-riscy is OpenRISC 1200 compatible (adv_debugsys from opencores.org).
 
 ### Architecture
 For coarse-graied architecture, see [src/top.sv](src/top.sv) for how highest-level blocks are composed.
@@ -85,3 +85,8 @@ cd run
 make gdb
 ```
 - See [src/fpga.cfg](src/fpga.cfg) for OpenOCD configuration
+
+## Contributors
+- [hchsiao](https://github.com/hchsiao) (Hsiang-Chih Hsiao)
+- [Jyun-Neng](https://github.com/Jyun-Neng) (Jyun-Neng Ji)
+- shiyong (Shi-Yong Wu)
