@@ -13,7 +13,7 @@ _List of IP_:
 | axi | [pulp-platform](https://github.com/pulp-platform) | AXI bus implemented in SystemVerilog |
 | peripherals | [pulp-platform](https://github.com/pulp-platform) | Common peripherals for a MCU |
 | zero-riscy | [pulp-platform](https://github.com/pulp-platform) | A low-footprint RISC-V (RV32IMC) core |
-| zero-buggy | [hchsiao](https://github.com/hchsiao/) | RISC-V compatible debug module (debug transfer module) written for zero-riscy |
+| zero-buggy | [hchsiao](https://github.com/hchsiao/) | RISC-V compatible debug module written for zero-riscy |
 
 **Note to zero-buggy**: At the moment this project started, the debug module in zero-riscy is OpenRISC 1200 compatible (adv_debugsys from opencores.org).
 
